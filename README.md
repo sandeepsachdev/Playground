@@ -41,6 +41,38 @@ using a transparent, editable rubric (premium genres, flagship Australian
 titles, live sport, movie premieres) and returns up to five picks ordered by
 start time, each annotated with a short reason to watch.
 
+## Live data sources
+
+Out of the box the app serves a hand-curated static schedule (`tvguide.epg.source=static`).
+Flip to `xmltv` to pull real listings from any XMLTV-compatible feed. XMLTV is
+the standard interchange format used by virtually every EPG provider.
+
+Known sources you can point at:
+
+| Source | URL pattern | Notes |
+|--------|-------------|-------|
+| [iptv-org EPG](https://github.com/iptv-org/epg) | `https://iptv-org.github.io/epg/guides/au/freeview.com.au.epg.xml.gz` | Community-scraped, free, daily refresh |
+| [IceTV](https://www.icetv.com.au/) | Your API endpoint | Commercial, paid, high-quality |
+| [OzTivo](https://www.oztivo.net/) | Rotating mirror URLs | Community, XMLTV format |
+| Self-hosted `xmltv` grabber | Any URL you expose | Run `tv_grab_au_*` locally |
+
+Configure via `application.properties`:
+
+```properties
+tvguide.epg.source=xmltv
+tvguide.epg.xmltv-url=https://iptv-org.github.io/epg/guides/au/freeview.com.au.epg.xml.gz
+tvguide.epg.refresh-interval=PT6H
+tvguide.epg.channels[0].xmltv-id=abc1.abc.net.au
+tvguide.epg.channels[0].number=2
+tvguide.epg.channels[0].name=ABC TV
+tvguide.epg.channels[0].network=ABC
+# ... repeat for SBS, Seven, Nine, 10
+```
+
+`EpgService` caches the parsed schedule for `refresh-interval` and transparently
+falls back to the static schedule if the upstream feed is unreachable on first
+boot, so the UI never goes blank.
+
 ## Deploying to Render
 
 The repo ships with a multi-stage `Dockerfile` and a `render.yaml` blueprint.

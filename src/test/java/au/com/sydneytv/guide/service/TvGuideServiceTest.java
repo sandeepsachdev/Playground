@@ -1,5 +1,6 @@
 package au.com.sydneytv.guide.service;
 
+import au.com.sydneytv.guide.config.EpgProperties;
 import au.com.sydneytv.guide.model.Channel;
 import au.com.sydneytv.guide.model.DailyGuide;
 import au.com.sydneytv.guide.model.Highlight;
@@ -14,7 +15,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TvGuideServiceTest {
 
-    private final TvGuideService service = new TvGuideService(new ScheduleRepository(), new HighlightsService());
+    private final ScheduleRepository staticProvider = new ScheduleRepository();
+    private final EpgService epgService = new EpgService(staticProvider, staticProvider, new EpgProperties());
+    private final TvGuideService service = new TvGuideService(epgService, new HighlightsService());
 
     @Test
     void everyDayHasAllFiveNetworks() {

@@ -18,16 +18,16 @@ public class TvGuideService {
     public static final LocalTime PRIME_TIME_START = LocalTime.of(18, 0);
     public static final LocalTime PRIME_TIME_END = LocalTime.of(22, 0);
 
-    private final ScheduleRepository scheduleRepository;
+    private final EpgService epgService;
     private final HighlightsService highlightsService;
 
-    public TvGuideService(ScheduleRepository scheduleRepository, HighlightsService highlightsService) {
-        this.scheduleRepository = scheduleRepository;
+    public TvGuideService(EpgService epgService, HighlightsService highlightsService) {
+        this.epgService = epgService;
         this.highlightsService = highlightsService;
     }
 
     public DailyGuide guideFor(DayOfWeek day) {
-        List<Channel> channels = scheduleRepository.scheduleFor(day);
+        List<Channel> channels = epgService.scheduleFor(day);
         List<Highlight> highlights = highlightsService.pickHighlights(channels);
         return new DailyGuide(day, channels, highlights);
     }
@@ -45,7 +45,7 @@ public class TvGuideService {
     }
 
     public List<Program> primeTimeProgramsFor(DayOfWeek day, String channelNumber) {
-        return scheduleRepository.scheduleFor(day).stream()
+        return epgService.scheduleFor(day).stream()
                 .filter(channel -> channel.getNumber().equals(channelNumber))
                 .flatMap(channel -> channel.getPrograms().stream())
                 .filter(program -> program.overlapsWith(PRIME_TIME_START, PRIME_TIME_END))

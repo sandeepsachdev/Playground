@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tv generator-info-name="test-fixture">
+    <channel id="abc1.abc.net.au">
+        <display-name>ABC TV</display-name>
+    </channel>
+    <channel id="sbs-one.sbs.com.au">
+        <display-name>SBS</display-name>
+    </channel>
+    <channel id="seven.seven.com.au">
+        <display-name>Seven</display-name>
+    </channel>
+
+    <programme start="20260420180000 +1000" stop="20260420190000 +1000" channel="abc1.abc.net.au">
+        <title>ABC News</title>
+        <desc>National and Sydney news.</desc>
+        <category>News</category>
+        <rating><value>NC</value></rating>
+    </programme>
+    <programme start="20260420193000 +1000" stop="20260420200000 +1000" channel="abc1.abc.net.au">
+        <title>Hard Quiz</title>
+        <desc>Tom Gleeson grills specialist contestants.</desc>
+        <category>Comedy</category>
+        <rating><value>PG</value></rating>
+    </programme>
+    <programme start="20260420203000 +1000" stop="20260420213000 +1000" channel="abc1.abc.net.au">
+        <title>Four Corners</title>
+        <desc>Investigative journalism.</desc>
+        <category>Current Affairs</category>
+        <rating><value>M</value></rating>
+    </programme>
+
+    <programme start="20260420183000 +1000" stop="20260420193000 +1000" channel="sbs-one.sbs.com.au">
+        <title>SBS World News</title>
+        <desc>International news.</desc>
+        <category>News</category>
+        <rating><value>NC</value></rating>
+    </programme>
+
+    <programme start="20260420193000 +1000" stop="20260420210000 +1000" channel="seven.seven.com.au">
+        <title>My Kitchen Rules</title>
+        <desc>Instant restaurant round.</desc>
+        <category>Reality</category>
+        <rating><value>PG</value></rating>
+    </programme>
+
+    <programme start="20260420210000 +1000" stop="20260420220000 +1000" channel="unmapped.example.com">
+        <title>Ignored Programme</title>
+        <category>Filler</category>
+    </programme>
+</tv>

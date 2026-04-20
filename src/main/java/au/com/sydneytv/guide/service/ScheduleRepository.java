@@ -2,7 +2,6 @@ package au.com.sydneytv.guide.service;
 
 import au.com.sydneytv.guide.model.Channel;
 import au.com.sydneytv.guide.model.Program;
-import org.springframework.stereotype.Repository;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -11,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * In-memory schedule for Sydney free-to-air networks. Times are Sydney local time.
- * Data represents a representative weekly schedule for the major FTA channels.
+ * In-memory fallback schedule for Sydney free-to-air networks. Times are Sydney
+ * local time. Used when no live EPG source is configured (or one is configured
+ * but unreachable).
  */
-@Repository
-public class ScheduleRepository {
+public class ScheduleRepository implements EpgProvider {
 
     private final Map<DayOfWeek, List<Channel>> weeklySchedule = new EnumMap<>(DayOfWeek.class);
 
@@ -23,6 +22,16 @@ public class ScheduleRepository {
         for (DayOfWeek day : DayOfWeek.values()) {
             weeklySchedule.put(day, buildSchedule(day));
         }
+    }
+
+    @Override
+    public String name() {
+        return "static";
+    }
+
+    @Override
+    public Map<DayOfWeek, List<Channel>> fetchSchedule() {
+        return weeklySchedule;
     }
 
     public List<Channel> scheduleFor(DayOfWeek day) {
