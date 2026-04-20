@@ -41,6 +41,24 @@ using a transparent, editable rubric (premium genres, flagship Australian
 titles, live sport, movie premieres) and returns up to five picks ordered by
 start time, each annotated with a short reason to watch.
 
+## Deploying to Render
+
+The repo ships with a multi-stage `Dockerfile` and a `render.yaml` blueprint.
+
+1. Push the branch to GitHub.
+2. In Render, choose **New +** → **Blueprint** and point at this repo.
+   Render will read `render.yaml` and provision a Docker web service.
+3. Render injects a `PORT` env var; the container's entrypoint binds Spring
+   Boot to it via `-Dserver.port=${PORT}`, so no extra config is required.
+4. Health checks hit `/api/guide/today`.
+
+To build and run locally against the same image:
+
+```bash
+docker build -t sydney-tv-guide .
+docker run --rm -p 8080:8080 sydney-tv-guide
+```
+
 ## Notes
 
 The schedule is a representative, hand-curated snapshot — useful for demos and
