@@ -7,7 +7,7 @@ import au.com.sydneytv.guide.model.Program;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
-import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -16,19 +16,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class XmltvEpgProviderTest {
 
+    private static final LocalDate MONDAY_20_APR = LocalDate.of(2026, 4, 20);
+
     private final EpgProperties properties = properties();
     private final XmltvEpgProvider provider = new XmltvEpgProvider(properties);
 
     @Test
-    void parsesProgrammesAndBucketsBySydneyDay() throws Exception {
-        Map<DayOfWeek, List<Channel>> schedule;
+    void parsesProgrammesAndBucketsBySydneyDate() throws Exception {
+        Map<LocalDate, List<Channel>> schedule;
         try (InputStream stream = getClass().getResourceAsStream("/xmltv/sample-au.xml")) {
             assertThat(stream).isNotNull();
             schedule = provider.parse(stream);
         }
 
-        // 20 April 2026 is a Monday in Sydney.
-        List<Channel> monday = schedule.get(DayOfWeek.MONDAY);
+        assertThat(schedule).containsOnlyKeys(MONDAY_20_APR);
+        List<Channel> monday = schedule.get(MONDAY_20_APR);
         assertThat(monday).hasSize(3);
 
         Channel abc = monday.stream().filter(c -> c.getNumber().equals("2")).findFirst().orElseThrow();
@@ -47,21 +49,11 @@ class XmltvEpgProviderTest {
     @Test
     void skipsUnmappedChannels() throws Exception {
         try (InputStream stream = getClass().getResourceAsStream("/xmltv/sample-au.xml")) {
-            Map<DayOfWeek, List<Channel>> schedule = provider.parse(stream);
+            Map<LocalDate, List<Channel>> schedule = provider.parse(stream);
             for (List<Channel> channels : schedule.values()) {
                 assertThat(channels).extracting(Channel::getNumber)
                         .doesNotContain("unmapped.example.com");
             }
-        }
-    }
-
-    @Test
-    void otherDaysAreEmptyWhenFeedOnlyContainsOneDay() throws Exception {
-        try (InputStream stream = getClass().getResourceAsStream("/xmltv/sample-au.xml")) {
-            Map<DayOfWeek, List<Channel>> schedule = provider.parse(stream);
-            List<Channel> sunday = schedule.get(DayOfWeek.SUNDAY);
-            assertThat(sunday).hasSize(3);
-            assertThat(sunday).allSatisfy(c -> assertThat(c.getPrograms()).isEmpty());
         }
     }
 
@@ -78,9 +70,18 @@ class XmltvEpgProviderTest {
         assertThat(XmltvEpgProvider.parseTime("not a date")).isNull();
     }
 
+    @Test
+    void fetchScheduleRequiresConfiguredUrl() {
+        EpgProperties blank = new EpgProperties();
+        blank.setChannels(List.of(new ChannelMapping("abc1.abc.net.au", "2", "ABC", "ABC")));
+        XmltvEpgProvider noUrl = new XmltvEpgProvider(blank);
+        assertThat(org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalStateException.class, noUrl::fetchSchedule))
+                .hasMessageContaining("xmltv-url");
+    }
+
     private static EpgProperties properties() {
         EpgProperties p = new EpgProperties();
-        p.setSource(EpgProperties.Source.XMLTV);
         p.setXmltvUrl("http://example.com/feed.xml");
         p.setChannels(List.of(
                 new ChannelMapping("abc1.abc.net.au", "2", "ABC TV", "ABC"),

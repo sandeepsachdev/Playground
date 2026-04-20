@@ -2,13 +2,12 @@ package au.com.sydneytv.guide.service;
 
 import au.com.sydneytv.guide.model.Channel;
 
-import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 /**
- * A source of Sydney free-to-air EPG data. Implementations may serve static
- * content, scrape a schedule site, or adapt a commercial feed.
+ * A source of live Sydney free-to-air EPG data.
  */
 public interface EpgProvider {
 
@@ -18,9 +17,8 @@ public interface EpgProvider {
     String name();
 
     /**
-     * Fetch the current schedule bucketed by day of week (Sydney local time).
-     * Implementations should throw if the upstream source is unreachable so
-     * callers can fall back to another provider.
+     * Fetch the current schedule bucketed by Sydney-local date.
+     * Implementations should throw if the upstream source is unreachable.
      */
-    Map<DayOfWeek, List<Channel>> fetchSchedule();
+    Map<LocalDate, List<Channel>> fetchSchedule();
 }

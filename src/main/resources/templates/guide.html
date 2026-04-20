@@ -2,24 +2,40 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title th:text="'Sydney TV Guide — ' + ${guide.dayName}">Sydney TV Guide</title>
+    <title th:text="'Sydney TV Guide — ' + ${guide.longLabel}">Sydney TV Guide</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}"/>
 </head>
 <body>
 <header>
     <h1>Sydney Free-to-Air TV Guide</h1>
-    <p class="tagline">Tonight's prime-time picks (6pm – 10pm)</p>
+    <p class="tagline">
+        <span th:text="${guide.longLabel}">Monday, 20 April 2026</span>
+        · prime-time picks 6pm – 10pm
+    </p>
     <nav class="day-nav">
-        <a th:each="d : ${days}"
-           th:href="@{/(day=${d.name()})}"
-           th:classappend="${d == selectedDay} ? ' active' : ''"
-           th:text="${#strings.capitalize(#strings.toLowerCase(d.name()))}">Day</a>
+        <a th:each="d : ${dates}"
+           th:href="@{/(date=${#temporals.format(d, 'yyyy-MM-dd')})}"
+           th:classappend="${d == selectedDate} ? ' active' : ''">
+            <span class="day-short" th:text="${#temporals.format(d, 'EEE')}">Mon</span>
+            <span class="day-num" th:text="${#temporals.format(d, 'd MMM')}">20 Apr</span>
+        </a>
     </nav>
 </header>
 
-<section class="highlights">
-    <h2 th:text="${guide.dayName} + ' Highlights'">Highlights</h2>
-    <p th:if="${#lists.isEmpty(guide.highlights)}">No highlights available for this evening.</p>
+<section th:if="${guide.empty}" class="empty-state">
+    <h2>No guide data available</h2>
+    <p>
+        The app has no live listings for
+        <strong th:text="${guide.longLabel}">this date</strong>.
+        Configure <code>tvguide.epg.xmltv-url</code> in
+        <code>application.properties</code> with an XMLTV feed (iptv-org, IceTV,
+        OzTivo, or a self-hosted grabber) and restart.
+    </p>
+</section>
+
+<section th:unless="${guide.empty}" class="highlights">
+    <h2>Tonight's highlights</h2>
+    <p th:if="${#lists.isEmpty(guide.highlights)}">No prime-time highlights picked for this evening.</p>
     <ol th:if="${not #lists.isEmpty(guide.highlights)}">
         <li th:each="h : ${guide.highlights}">
             <span class="time" th:text="${#temporals.format(h.startTime, 'HH:mm')}">19:30</span>
@@ -30,10 +46,11 @@
     </ol>
 </section>
 
-<section class="guide">
+<section th:unless="${guide.empty}" class="guide">
     <h2>Full prime-time line-up</h2>
     <div class="channels">
-        <article class="channel-card" th:each="channel : ${guide.channels}">
+        <article class="channel-card" th:each="channel : ${guide.channels}"
+                 th:unless="${#lists.isEmpty(channel.programs)}">
             <header class="channel-header">
                 <span class="channel-number" th:text="${channel.number}">7</span>
                 <div>
@@ -61,7 +78,7 @@
 </section>
 
 <footer>
-    <p>Sample schedule for demonstration purposes. Check the networks' official websites for live changes.</p>
+    <p>Listings provided by the configured XMLTV feed. Check network websites for live changes.</p>
 </footer>
 </body>
 </html>

@@ -9,13 +9,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "tvguide.epg")
 public class EpgProperties {
 
-    /**
-     * {@code static} (default, uses the bundled sample schedule) or {@code xmltv}
-     * (fetches a live XMLTV feed and falls back to static on error).
-     */
-    private Source source = Source.STATIC;
-
-    /** URL of the XMLTV feed (plain XML or gzipped). Required when source=xmltv. */
+    /** URL of the XMLTV feed (plain XML or gzipped). When unset the guide renders empty. */
     private String xmltvUrl;
 
     /** How long to cache a successful fetch before refreshing. */
@@ -23,14 +17,6 @@ public class EpgProperties {
 
     /** Mapping of XMLTV channel ids to local channel metadata. */
     private List<ChannelMapping> channels = new ArrayList<>();
-
-    public Source getSource() {
-        return source;
-    }
-
-    public void setSource(Source source) {
-        this.source = source;
-    }
 
     public String getXmltvUrl() {
         return xmltvUrl;
@@ -54,10 +40,6 @@ public class EpgProperties {
 
     public void setChannels(List<ChannelMapping> channels) {
         this.channels = channels;
-    }
-
-    public enum Source {
-        STATIC, XMLTV
     }
 
     public static class ChannelMapping {

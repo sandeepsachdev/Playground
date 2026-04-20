@@ -18,32 +18,28 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.zip.GZIPInputStream;
 
 /**
  * Live EPG provider that fetches and parses an XMLTV feed.
  *
- * <p>XMLTV is the <i>de facto</i> standard format for TV listings and is served
- * by a number of Australian sources: iptv-org (community, free), IceTV
- * (commercial, API), OzTivo (community), plus any xmltv-grabber you run yourself.
- *
- * <p>The provider only keeps programmes whose XMLTV channel id is listed in
+ * <p>Only keeps programmes whose XMLTV channel id is listed in
  * {@link EpgProperties#getChannels()}, converts each programme's start/stop
- * timestamps into Sydney local time, and buckets by {@link DayOfWeek}. Within a
- * day, channel programme lists are sorted by start time.
+ * timestamps into Sydney local time, and buckets by {@link LocalDate}. Within
+ * a day, each channel's programme list is sorted by start time.
  */
 public class XmltvEpgProvider implements EpgProvider {
 
@@ -76,7 +72,7 @@ public class XmltvEpgProvider implements EpgProvider {
     }
 
     @Override
-    public Map<DayOfWeek, List<Channel>> fetchSchedule() {
+    public Map<LocalDate, List<Channel>> fetchSchedule() {
         String url = properties.getXmltvUrl();
         if (url == null || url.isBlank()) {
             throw new IllegalStateException("tvguide.epg.xmltv-url is not configured");
@@ -111,9 +107,9 @@ public class XmltvEpgProvider implements EpgProvider {
         return isGzip ? new GZIPInputStream(body) : body;
     }
 
-    Map<DayOfWeek, List<Channel>> parse(InputStream stream) throws XMLStreamException {
+    Map<LocalDate, List<Channel>> parse(InputStream stream) throws XMLStreamException {
         Map<String, ChannelMapping> channelsById = indexChannelMappings();
-        Map<String, Map<DayOfWeek, List<Program>>> programsByChannel = new HashMap<>();
+        Map<String, Map<LocalDate, List<Program>>> programsByChannel = new HashMap<>();
 
         XMLInputFactory factory = XMLInputFactory.newFactory();
         factory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
@@ -132,7 +128,7 @@ public class XmltvEpgProvider implements EpgProvider {
             reader.close();
         }
 
-        return assemble(channelsById, programsByChannel);
+        return assemble(programsByChannel);
     }
 
     private Map<String, ChannelMapping> indexChannelMappings() {
@@ -149,7 +145,7 @@ public class XmltvEpgProvider implements EpgProvider {
 
     private void readProgramme(XMLStreamReader reader,
                                Map<String, ChannelMapping> channelsById,
-                               Map<String, Map<DayOfWeek, List<Program>>> programsByChannel)
+                               Map<String, Map<LocalDate, List<Program>>> programsByChannel)
             throws XMLStreamException {
         String channelId = reader.getAttributeValue(null, "channel");
         if (channelId == null || !channelsById.containsKey(channelId)) {
@@ -190,7 +186,7 @@ public class XmltvEpgProvider implements EpgProvider {
 
         ZonedDateTime sydneyStart = start.withZoneSameInstant(SYDNEY);
         ZonedDateTime sydneyStop = stop.withZoneSameInstant(SYDNEY);
-        DayOfWeek day = sydneyStart.getDayOfWeek();
+        LocalDate date = sydneyStart.toLocalDate();
         Program program = new Program(
                 sydneyStart.toLocalTime(),
                 clampEndTime(sydneyStart, sydneyStop),
@@ -200,8 +196,8 @@ public class XmltvEpgProvider implements EpgProvider {
                 synopsis == null ? "" : synopsis.trim()
         );
         programsByChannel
-                .computeIfAbsent(channelId, k -> new EnumMap<>(DayOfWeek.class))
-                .computeIfAbsent(day, k -> new ArrayList<>())
+                .computeIfAbsent(channelId, k -> new HashMap<>())
+                .computeIfAbsent(date, k -> new ArrayList<>())
                 .add(program);
     }
 
@@ -237,26 +233,30 @@ public class XmltvEpgProvider implements EpgProvider {
         }
     }
 
-    private Map<DayOfWeek, List<Channel>> assemble(
-            Map<String, ChannelMapping> channelsById,
-            Map<String, Map<DayOfWeek, List<Program>>> programsByChannel) {
+    private Map<LocalDate, List<Channel>> assemble(
+            Map<String, Map<LocalDate, List<Program>>> programsByChannel) {
 
-        Map<DayOfWeek, List<Channel>> byDay = new EnumMap<>(DayOfWeek.class);
-        for (DayOfWeek day : DayOfWeek.values()) {
+        java.util.Set<LocalDate> dates = new java.util.TreeSet<>();
+        for (Map<LocalDate, List<Program>> byDate : programsByChannel.values()) {
+            dates.addAll(byDate.keySet());
+        }
+
+        Map<LocalDate, List<Channel>> byDate = new TreeMap<>();
+        for (LocalDate date : dates) {
             List<Channel> channels = new ArrayList<>();
             for (ChannelMapping mapping : properties.getChannels()) {
                 List<Program> programs = programsByChannel
                         .getOrDefault(mapping.getXmltvId(), Map.of())
-                        .getOrDefault(day, List.of())
+                        .getOrDefault(date, List.of())
                         .stream()
                         .sorted(Comparator.comparing(Program::getStartTime))
                         .toList();
                 channels.add(new Channel(mapping.getNumber(), mapping.getName(),
                         mapping.getNetwork(), programs));
             }
-            byDay.put(day, channels);
+            byDate.put(date, channels);
         }
-        return byDay;
+        return byDate;
     }
 
     static ZonedDateTime parseTime(String raw) {

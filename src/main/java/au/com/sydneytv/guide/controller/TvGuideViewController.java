@@ -1,15 +1,13 @@
 package au.com.sydneytv.guide.controller;
 
 import au.com.sydneytv.guide.service.TvGuideService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Locale;
 
 @Controller
 public class TvGuideViewController {
@@ -21,22 +19,14 @@ public class TvGuideViewController {
     }
 
     @GetMapping("/")
-    public String home(@RequestParam(value = "day", required = false) String day, Model model) {
-        DayOfWeek selected = parseDay(day);
+    public String home(
+            @RequestParam(value = "date", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            Model model) {
+        LocalDate selected = date != null ? date : tvGuideService.today();
         model.addAttribute("guide", tvGuideService.guideFor(selected));
-        model.addAttribute("days", Arrays.asList(DayOfWeek.values()));
-        model.addAttribute("selectedDay", selected);
+        model.addAttribute("dates", tvGuideService.guideDates());
+        model.addAttribute("selectedDate", selected);
         return "guide";
-    }
-
-    private DayOfWeek parseDay(String day) {
-        if (day == null || day.isBlank()) {
-            return LocalDate.now().getDayOfWeek();
-        }
-        try {
-            return DayOfWeek.valueOf(day.toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            return LocalDate.now().getDayOfWeek();
-        }
     }
 }

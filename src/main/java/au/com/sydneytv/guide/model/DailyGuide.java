@@ -1,26 +1,35 @@
 package au.com.sydneytv.guide.model;
 
-import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class DailyGuide {
 
-    private final DayOfWeek day;
+    private static final DateTimeFormatter LONG = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.ENGLISH);
+    private static final DateTimeFormatter SHORT = DateTimeFormatter.ofPattern("EEE d MMM", Locale.ENGLISH);
+
+    private final LocalDate date;
     private final List<Channel> channels;
     private final List<Highlight> highlights;
 
-    public DailyGuide(DayOfWeek day, List<Channel> channels, List<Highlight> highlights) {
-        this.day = day;
+    public DailyGuide(LocalDate date, List<Channel> channels, List<Highlight> highlights) {
+        this.date = date;
         this.channels = channels;
         this.highlights = highlights;
     }
 
-    public DayOfWeek getDay() {
-        return day;
+    public LocalDate getDate() {
+        return date;
     }
 
-    public String getDayName() {
-        return day.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH);
+    public String getLongLabel() {
+        return LONG.format(date);
+    }
+
+    public String getShortLabel() {
+        return SHORT.format(date);
     }
 
     public List<Channel> getChannels() {
@@ -29,5 +38,9 @@ public class DailyGuide {
 
     public List<Highlight> getHighlights() {
         return highlights;
+    }
+
+    public boolean isEmpty() {
+        return channels.stream().allMatch(c -> c.getPrograms().isEmpty());
     }
 }
