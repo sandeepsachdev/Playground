@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Sydney TV Guide — ' + ${guide.dayName}">Sydney TV Guide</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<header>
+    <h1>Sydney Free-to-Air TV Guide</h1>
+    <p class="tagline">Tonight's prime-time picks (6pm – 10pm)</p>
+    <nav class="day-nav">
+        <a th:each="d : ${days}"
+           th:href="@{/(day=${d.name()})}"
+           th:classappend="${d == selectedDay} ? ' active' : ''"
+           th:text="${#strings.capitalize(#strings.toLowerCase(d.name()))}">Day</a>
+    </nav>
+</header>
+
+<section class="highlights">
+    <h2 th:text="${guide.dayName} + ' Highlights'">Highlights</h2>
+    <p th:if="${#lists.isEmpty(guide.highlights)}">No highlights available for this evening.</p>
+    <ol th:if="${not #lists.isEmpty(guide.highlights)}">
+        <li th:each="h : ${guide.highlights}">
+            <span class="time" th:text="${#temporals.format(h.startTime, 'HH:mm')}">19:30</span>
+            <span class="channel" th:text="${h.channel}">Channel</span>
+            <strong th:text="${h.title}">Title</strong>
+            <span class="reason" th:text="${h.reason}">Reason</span>
+        </li>
+    </ol>
+</section>
+
+<section class="guide">
+    <h2>Full prime-time line-up</h2>
+    <div class="channels">
+        <article class="channel-card" th:each="channel : ${guide.channels}">
+            <header class="channel-header">
+                <span class="channel-number" th:text="${channel.number}">7</span>
+                <div>
+                    <h3 th:text="${channel.name}">Channel Name</h3>
+                    <p class="network" th:text="${channel.network}">Network</p>
+                </div>
+            </header>
+            <ul class="program-list">
+                <li th:each="p : ${channel.programs}">
+                    <span class="slot">
+                        <span th:text="${#temporals.format(p.startTime, 'HH:mm')}">18:00</span>
+                        –
+                        <span th:text="${#temporals.format(p.endTime, 'HH:mm')}">19:00</span>
+                    </span>
+                    <span class="title" th:text="${p.title}">Program title</span>
+                    <span class="meta">
+                        <span class="genre" th:text="${p.genre}">Genre</span>
+                        <span class="rating" th:text="${p.rating}">PG</span>
+                    </span>
+                    <p class="synopsis" th:text="${p.synopsis}">Synopsis</p>
+                </li>
+            </ul>
+        </article>
+    </div>
+</section>
+
+<footer>
+    <p>Sample schedule for demonstration purposes. Check the networks' official websites for live changes.</p>
+</footer>
+</body>
+</html>
