@@ -7,12 +7,15 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TextAnalyzerTest {
 
-    private final StopWordFilter stopWords = new StopWordFilter();
+    private final StopWordFilter stopWords = new StopWordFilter(
+            Set.of("the", "and", "in", "for", "a", "on"),
+            List.of());
     private final FeedProperties properties = defaults();
     private final TextAnalyzer analyzer = new TextAnalyzer(stopWords, properties);
 

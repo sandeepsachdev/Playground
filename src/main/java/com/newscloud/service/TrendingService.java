@@ -51,6 +51,15 @@ public class TrendingService {
         return refresh();
     }
 
+    public synchronized void invalidate() {
+        cached = null;
+    }
+
+    public synchronized TrendingSnapshot rebuild() {
+        cached = null;
+        return refresh();
+    }
+
     public synchronized TrendingSnapshot refresh() {
         if (cached != null && !isExpired(cached)) {
             return cached;

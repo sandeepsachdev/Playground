@@ -10,3 +10,4 @@ mvnw.cmd
 build/
 .gradle/
 *.log
+data/

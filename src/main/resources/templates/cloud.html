@@ -30,9 +30,13 @@
 </header>
 
 <main>
-    <div id="cloud" role="img" aria-label="Trending word cloud"></div>
+    <div class="cloud-wrap">
+        <button type="button" id="toggle-top" class="toggle-top" aria-pressed="true"
+                aria-controls="top-list">Hide top words</button>
+        <div id="cloud" role="img" aria-label="Trending word cloud"></div>
+    </div>
 
-    <aside class="top-list" th:if="${not #lists.isEmpty(snapshot.words)}">
+    <aside class="top-list" id="top-list" th:if="${not #lists.isEmpty(snapshot.words)}">
         <h2>Top 25</h2>
         <ol>
             <li th:each="w, iter : ${snapshot.words}" th:if="${iter.index < 25}">
@@ -40,6 +44,8 @@
                 <span class="term" th:text="${w.text}">word</span>
                 <span class="count" th:text="${w.count}">0</span>
                 <span class="badge" th:if="${w.phrase}">phrase</span>
+                <button type="button" class="exclude" title="Exclude this word from the cloud"
+                        th:attr="data-term=${w.text},data-phrase=${w.phrase}">Exclude</button>
             </li>
         </ol>
     </aside>

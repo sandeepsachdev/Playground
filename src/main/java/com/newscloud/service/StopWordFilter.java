@@ -1,49 +1,66 @@
 package com.newscloud.service;
 
-import org.springframework.core.io.ClassPathResource;
+import com.newscloud.model.StopWord;
+import com.newscloud.repository.StopWordRepository;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * Loads a stop-word list from the classpath ({@code stopwords.txt}) and
- * exposes a fast membership check. Lines starting with {@code #} and blank
- * lines are ignored; all words are compared case-insensitively. Lines
- * prefixed with {@code ~} are treated as substring fragments — any token
- * containing the fragment is filtered.
+ * Database-backed stop-word filter. On startup (and after each mutation) the
+ * filter snapshots the {@code stop_words} table into two in-memory structures
+ * for fast membership checks:
+ * <ul>
+ *   <li>exact matches — token equals entry</li>
+ *   <li>fragment matches — token contains entry (for rows flagged as fragments)</li>
+ * </ul>
+ * All comparisons are case-insensitive.
  */
 @Component
 public class StopWordFilter {
 
-    private final Set<String> stopWords;
-    private final List<String> stopFragments;
+    private final StopWordRepository repository;
 
-    public StopWordFilter() {
-        this("stopwords.txt");
+    private volatile Set<String> stopWords = Set.of();
+    private volatile List<String> stopFragments = List.of();
+
+    @Autowired
+    public StopWordFilter(StopWordRepository repository) {
+        this.repository = repository;
     }
 
-    StopWordFilter(String resource) {
-        Loaded loaded = loadStopWords(resource);
-        this.stopWords = loaded.words;
-        this.stopFragments = loaded.fragments;
-    }
-
-    StopWordFilter(Set<String> stopWords) {
-        this(stopWords, List.of());
-    }
-
+    /** Test hook: build a filter without a database, from literal collections. */
     StopWordFilter(Set<String> stopWords, List<String> stopFragments) {
+        this.repository = null;
         this.stopWords = Set.copyOf(stopWords);
         this.stopFragments = List.copyOf(stopFragments);
+    }
+
+    @PostConstruct
+    public void reload() {
+        if (repository == null) {
+            return;
+        }
+        Set<String> words = new HashSet<>();
+        List<String> fragments = new ArrayList<>();
+        for (StopWord row : repository.findAll()) {
+            String lower = row.getWord().toLowerCase(Locale.ROOT);
+            if (row.isFragment()) {
+                fragments.add(lower);
+            } else {
+                words.add(lower);
+            }
+        }
+        this.stopWords = Collections.unmodifiableSet(words);
+        this.stopFragments = Collections.unmodifiableList(fragments);
     }
 
     public boolean isStopWord(String word) {
@@ -66,35 +83,27 @@ public class StopWordFilter {
         return stopWords.size() + stopFragments.size();
     }
 
-    private static Loaded loadStopWords(String resource) {
-        Set<String> words = new HashSet<>();
-        List<String> fragments = new ArrayList<>();
-        ClassPathResource cp = new ClassPathResource(resource);
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(cp.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String trimmed = line.trim();
-                if (trimmed.isEmpty() || trimmed.startsWith("#")) {
-                    continue;
-                }
-                String lower = trimmed.toLowerCase(Locale.ROOT);
-                if (lower.startsWith("~")) {
-                    String fragment = lower.substring(1).trim();
-                    if (!fragment.isEmpty()) {
-                        fragments.add(fragment);
-                    }
-                } else {
-                    words.add(lower);
-                }
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to load stop-word list " + resource, e);
+    /**
+     * Adds a stop word to the database (if not already present) and refreshes
+     * the in-memory snapshot. Returns {@code true} if a new row was inserted.
+     */
+    public synchronized boolean addWord(String word, boolean fragment) {
+        if (repository == null) {
+            throw new IllegalStateException("StopWordFilter constructed without a repository");
         }
-        return new Loaded(Collections.unmodifiableSet(words),
-                Collections.unmodifiableList(fragments));
-    }
-
-    private record Loaded(Set<String> words, List<String> fragments) {
+        if (word == null) {
+            return false;
+        }
+        String lower = word.trim().toLowerCase(Locale.ROOT);
+        if (lower.isEmpty()) {
+            return false;
+        }
+        Optional<StopWord> existing = repository.findByWord(lower);
+        if (existing.isPresent()) {
+            return false;
+        }
+        repository.save(new StopWord(lower, fragment));
+        reload();
+        return true;
     }
 }

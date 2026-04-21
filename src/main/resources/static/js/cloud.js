@@ -12,6 +12,11 @@
     const dialogList = dialog ? dialog.querySelector('.article-list') : null;
     const dialogClose = dialog ? dialog.querySelector('.close') : null;
 
+    const main = document.querySelector('main');
+    const toggleBtn = document.getElementById('toggle-top');
+    const topListAside = document.getElementById('top-list');
+
+    let currentWords = [];
     let articles = [];
 
     if (dialog) {
@@ -23,9 +28,12 @@
         });
     }
 
-    function matchesTerm(article, term) {
-        const haystack = (article.title + ' ' + article.description).toLowerCase();
-        return haystack.indexOf(term) !== -1;
+    if (toggleBtn && main) {
+        toggleBtn.addEventListener('click', function () {
+            const hidden = main.classList.toggle('hide-top');
+            toggleBtn.setAttribute('aria-pressed', hidden ? 'false' : 'true');
+            toggleBtn.textContent = hidden ? 'Show top words' : 'Hide top words';
+        });
     }
 
     function escapeHtml(s) {
@@ -40,6 +48,11 @@
         if (article && article.link) {
             window.open(article.link, '_blank', 'noopener');
         }
+    }
+
+    function matchesTerm(article, term) {
+        const haystack = (article.title + ' ' + article.description).toLowerCase();
+        return haystack.indexOf(term) !== -1;
     }
 
     function showArticlesFor(term) {
@@ -77,6 +90,10 @@
     }
 
     function render(words) {
+        if (!words || words.length === 0) {
+            container.textContent = 'No trending words yet. Configure feeds and retry.';
+            return;
+        }
         const rect = container.getBoundingClientRect();
         const canvas = document.createElement('canvas');
         canvas.width = Math.max(600, rect.width);
@@ -110,6 +127,30 @@
         });
     }
 
+    function rebuildTopList(words) {
+        if (!topListAside) {
+            return;
+        }
+        const ol = topListAside.querySelector('ol');
+        if (!ol) {
+            return;
+        }
+        ol.innerHTML = '';
+        words.slice(0, 25).forEach(function (w, i) {
+            const li = document.createElement('li');
+            li.innerHTML =
+                '<span class="rank">' + (i + 1) + '</span>' +
+                '<span class="term">' + escapeHtml(w.text) + '</span>' +
+                '<span class="count">' + w.count + '</span>' +
+                (w.phrase ? '<span class="badge">phrase</span>' : '<span></span>') +
+                '<button type="button" class="exclude" data-term="' + escapeHtml(w.text) +
+                '" data-phrase="' + (w.phrase ? 'true' : 'false') +
+                '" title="Exclude this word from the cloud">Exclude</button>';
+            ol.appendChild(li);
+        });
+        wireTopList();
+    }
+
     function wireTopList() {
         document.querySelectorAll('.top-list .term').forEach(function (el) {
             el.style.cursor = 'pointer';
@@ -117,30 +158,57 @@
                 showArticlesFor(el.textContent.trim());
             });
         });
+        document.querySelectorAll('.top-list .exclude').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                excludeTerm(btn);
+            });
+        });
     }
 
-    fetch('/api/trending', { headers: { 'Accept': 'application/json' } })
-        .then(function (response) {
+    function excludeTerm(btn) {
+        const term = btn.getAttribute('data-term');
+        if (!term) {
+            return;
+        }
+        btn.disabled = true;
+        fetch('/api/stopwords', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ word: term, fragment: false })
+        }).then(function (response) {
             if (!response.ok) {
-                throw new Error('Failed to load /api/trending (HTTP ' + response.status + ')');
+                throw new Error('HTTP ' + response.status);
             }
             return response.json();
-        })
-        .then(function (snapshot) {
-            articles = snapshot.articles || [];
-            const words = (snapshot.words || []).map(function (w) {
-                return [w.text, w.count];
-            });
-            if (words.length === 0) {
-                container.textContent = 'No trending words yet. Configure feeds and retry.';
-                return;
-            }
-
-            wireTopList();
-            render(words);
-            setInterval(function () { render(words); }, REFRESH_MS);
-        })
-        .catch(function (err) {
-            container.textContent = 'Could not load the word cloud: ' + err.message;
+        }).then(function () {
+            return loadSnapshot();
+        }).catch(function (err) {
+            btn.disabled = false;
+            alert('Could not exclude "' + term + '": ' + err.message);
         });
+    }
+
+    function loadSnapshot() {
+        return fetch('/api/trending', { headers: { 'Accept': 'application/json' } })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Failed to load /api/trending (HTTP ' + response.status + ')');
+                }
+                return response.json();
+            })
+            .then(function (snapshot) {
+                articles = snapshot.articles || [];
+                const words = snapshot.words || [];
+                currentWords = words.map(function (w) { return [w.text, w.count]; });
+                rebuildTopList(words);
+                render(currentWords);
+            });
+    }
+
+    wireTopList();
+    loadSnapshot().catch(function (err) {
+        container.textContent = 'Could not load the word cloud: ' + err.message;
+    });
+    setInterval(function () { render(currentWords); }, REFRESH_MS);
 })();

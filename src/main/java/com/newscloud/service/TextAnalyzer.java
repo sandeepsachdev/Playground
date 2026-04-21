@@ -53,7 +53,7 @@ public class TextAnalyzer {
         List<WordFrequency> merged = new ArrayList<>(wordCounts.size() + phraseCounts.size());
         wordCounts.forEach((word, count) -> merged.add(new WordFrequency(word, count, false)));
         phraseCounts.forEach((phrase, count) -> {
-            if (count >= 2) {
+            if (count >= 2 && !stopWordFilter.isStopWord(phrase)) {
                 merged.add(new WordFrequency(phrase, count, true));
             }
         });

@@ -2,11 +2,16 @@ package com.newscloud.service;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class StopWordFilterTest {
 
-    private final StopWordFilter filter = new StopWordFilter();
+    private final StopWordFilter filter = new StopWordFilter(
+            Set.of("the", "and", "a", "this"),
+            List.of("australia", "podcast", "live", "blog", "read"));
 
     @Test
     void recognisesCommonStopWords() {
@@ -31,7 +36,7 @@ class StopWordFilterTest {
 
     @Test
     void listIsPopulated() {
-        assertThat(filter.size()).isGreaterThan(100);
+        assertThat(filter.size()).isGreaterThan(0);
     }
 
     @Test

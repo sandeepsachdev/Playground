@@ -9,10 +9,17 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TrendingServiceTest {
+
+    private static StopWordFilter testStopWordFilter() {
+        return new StopWordFilter(
+                Set.of("the", "and", "in", "for", "a"),
+                List.of());
+    }
 
     @Test
     void aggregatesFromConfiguredFeedsAndCachesSnapshot() {
@@ -34,7 +41,7 @@ class TrendingServiceTest {
                 return fixture;
             }
         };
-        TextAnalyzer analyzer = new TextAnalyzer(new StopWordFilter(), properties);
+        TextAnalyzer analyzer = new TextAnalyzer(testStopWordFilter(), properties);
         TrendingService service = new TrendingService(properties, fetcher, analyzer);
 
         TrendingSnapshot snapshot = service.snapshot();
@@ -63,7 +70,7 @@ class TrendingServiceTest {
             }
         };
         TrendingService service = new TrendingService(properties, fetcher,
-                new TextAnalyzer(new StopWordFilter(), properties));
+                new TextAnalyzer(testStopWordFilter(), properties));
 
         TrendingSnapshot snapshot = service.snapshot();
         assertThat(snapshot.articleCount()).isEqualTo(1);
@@ -74,7 +81,7 @@ class TrendingServiceTest {
     void returnsEmptySnapshotWhenNoFeedsConfigured() {
         FeedProperties properties = new FeedProperties();
         TrendingService service = new TrendingService(properties, new FeedFetcher(),
-                new TextAnalyzer(new StopWordFilter(), properties));
+                new TextAnalyzer(testStopWordFilter(), properties));
 
         TrendingSnapshot snapshot = service.snapshot();
         assertThat(snapshot.articleCount()).isZero();
@@ -96,7 +103,7 @@ class TrendingServiceTest {
             }
         };
         TrendingService service = new TrendingService(properties, fetcher,
-                new TextAnalyzer(new StopWordFilter(), properties));
+                new TextAnalyzer(testStopWordFilter(), properties));
 
         service.snapshot();
         // Force cache expiry by rewinding the cached snapshot's timestamp.
