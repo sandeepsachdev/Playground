@@ -202,3 +202,9 @@ since
 back
 like
 amp
+# Substring fragments — any token containing one of these is dropped.
+~australia
+~read
+~podcast
+~live
+~blog

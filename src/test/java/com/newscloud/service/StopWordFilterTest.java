@@ -33,4 +33,15 @@ class StopWordFilterTest {
     void listIsPopulated() {
         assertThat(filter.size()).isGreaterThan(100);
     }
+
+    @Test
+    void filtersSubstringFragments() {
+        assertThat(filter.isStopWord("australia")).isTrue();
+        assertThat(filter.isStopWord("australian")).isTrue();
+        assertThat(filter.isStopWord("podcast")).isTrue();
+        assertThat(filter.isStopWord("podcasts")).isTrue();
+        assertThat(filter.isStopWord("liveblog")).isTrue();
+        assertThat(filter.isStopWord("blogger")).isTrue();
+        assertThat(filter.isStopWord("readers")).isTrue();
+    }
 }

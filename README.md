@@ -10,3 +10,5 @@ The prompts used to create this app, in order:
 2. > make the word cloud regenerate every 10 seconds so it looks different each
    > time. Make the words clickable so they open a news article with the keyword
    > in a new window.
+
+3. > filter out any words containing australia, read, podcast, live, blog
