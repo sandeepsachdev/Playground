@@ -1,22 +1,20 @@
-# Sydney TV Guide
+# News Word Cloud
 
-A small Spring Boot application that serves a free-to-air TV guide for Sydney
-and surfaces prime-time (6pm – 10pm) highlights for each night of the week.
+A Spring Boot application that pulls headlines from several live news feeds,
+filters out stop words, and surfaces the trending words and two-word phrases
+as an interactive word cloud.
 
-The app has no bundled schedule: if no live EPG feed is configured, the UI
-shows an explicit empty state. Plug in an XMLTV URL to get real listings.
+## What it does
 
-## Coverage
-
-Five networks, as broadcast in the Sydney market:
-
-| Channel | Network        |
-|---------|----------------|
-| 2       | ABC TV         |
-| 3       | SBS            |
-| 7       | Seven          |
-| 9       | Nine           |
-| 10      | Network 10     |
+- Fetches RSS/Atom feeds configured under `newscloud.feeds`.
+- Strips HTML, tokenises titles + descriptions, and drops stop words
+  (`src/main/resources/stopwords.txt` — about 170 common English and
+  news-wire terms like `a`, `this`, `and`, `said`, `year`).
+- Counts unigrams and bigrams, ranks them by frequency, and returns the top
+  `newscloud.top-n` (default 120) as a `TrendingSnapshot`.
+- Renders the snapshot as a canvas word cloud using
+  [wordcloud2.js](https://github.com/timdream/wordcloud2.js), with a side
+  panel listing the top 25 terms and phrase badges.
 
 ## Running
 
@@ -26,72 +24,45 @@ Five networks, as broadcast in the Sydney market:
 mvn spring-boot:run
 ```
 
-Then open <http://localhost:8080/>. Until you configure `tvguide.epg.xmltv-url`
-(see below) the UI will render its empty state.
+Open <http://localhost:8080/> for the cloud. The JSON snapshot is at
+`GET /api/trending` and a manual refresh is `POST /api/trending/refresh`.
 
-## Endpoints
+## Default feeds
 
-The guide is keyed on ISO dates (`yyyy-MM-dd`) so you can request any day the
-upstream feed provides.
+Configured in `application.properties`:
 
-- `GET /` – Web UI for today in Sydney.
-- `GET /?date=2026-04-20` – Web UI for a specific date.
-- `GET /api/guide/today` – JSON guide for today.
-- `GET /api/guide/week` – JSON guide for today + the next 6 days.
-- `GET /api/guide/date/{yyyy-MM-dd}` – JSON guide for a specific date.
-- `GET /api/guide/highlights/{yyyy-MM-dd}` – Just the highlights.
+- ABC News (Australia)
+- BBC World
+- The Guardian (Australia)
+- Sydney Morning Herald
+- NPR News
+- Al Jazeera
 
-## Highlights
-
-The `HighlightsService` scores every program overlapping the 6pm–10pm window
-using a transparent, editable rubric (premium genres, flagship Australian
-titles, live sport, movie premieres) and returns up to five picks ordered by
-start time, each annotated with a short reason to watch.
-
-## Live data sources
-
-The app reads any XMLTV-formatted feed. XMLTV is the standard interchange
-format used by almost every EPG provider.
-
-| Source | URL pattern | Notes |
-|--------|-------------|-------|
-| [iptv-org EPG](https://github.com/iptv-org/epg) | `https://iptv-org.github.io/epg/guides/au/freeview.com.au.epg.xml.gz` | Community-scraped, free, daily refresh |
-| [IceTV](https://www.icetv.com.au/) | Your API endpoint | Commercial, paid, high-quality |
-| [OzTivo](https://www.oztivo.net/) | Rotating mirror URLs | Community, XMLTV format |
-| Self-hosted `xmltv` grabber | Any URL you expose | Run `tv_grab_au_*` locally |
-
-Configure via `application.properties`:
+Add, replace, or remove entries with the indexed-list form:
 
 ```properties
-tvguide.epg.xmltv-url=https://iptv-org.github.io/epg/guides/au/freeview.com.au.epg.xml.gz
-tvguide.epg.refresh-interval=PT6H
-tvguide.epg.channels[0].xmltv-id=abc1.abc.net.au
-tvguide.epg.channels[0].number=2
-tvguide.epg.channels[0].name=ABC TV
-tvguide.epg.channels[0].network=ABC
-# ... repeat for SBS, Seven, Nine, 10
+newscloud.feeds[6].name=Reuters Top News
+newscloud.feeds[6].url=https://example.com/reuters.xml
 ```
 
-`EpgService` caches the parsed schedule for `refresh-interval`. If a refresh
-fails it keeps serving the previous cache; if nothing has ever loaded
-successfully, the guide renders empty.
+## Tuning
+
+| Property | Default | Meaning |
+|----------|---------|---------|
+| `newscloud.refresh-interval` | `PT15M` | How long a snapshot is cached |
+| `newscloud.max-entries` | `500` | Articles pulled into each analysis (newest first) |
+| `newscloud.min-token-length` | `3` | Shorter tokens are dropped |
+| `newscloud.top-n` | `120` | Words + phrases returned by the API |
+| `newscloud.include-phrases` | `true` | Include bigram phrases alongside words |
 
 ## Deploying to Render
 
-The repo ships with a multi-stage `Dockerfile` and a `render.yaml` blueprint.
-
-1. Push the branch to GitHub.
-2. In Render, choose **New +** → **Blueprint** and point at this repo.
-   Render will read `render.yaml` and provision a Docker web service.
-3. Render injects a `PORT` env var; the container's entrypoint binds Spring
-   Boot to it via `-Dserver.port=${PORT}`, so no extra config is required.
-4. Health checks hit `/api/guide/today`.
-5. Set `TVGUIDE_EPG_XMLTVURL` (and the channel mapping env vars) in the Render
-   dashboard to point at your XMLTV feed.
-
-To build and run locally against the same image:
+The repo ships a multi-stage `Dockerfile` and `render.yaml`. Render will
+auto-provision a Docker web service and bind Spring Boot to the injected
+`PORT`. The health check hits `/api/trending`. See the Dockerfile for the
+exact build steps.
 
 ```bash
-docker build -t sydney-tv-guide .
-docker run --rm -p 8080:8080 sydney-tv-guide
+docker build -t news-wordcloud .
+docker run --rm -p 8080:8080 news-wordcloud
 ```

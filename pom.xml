@@ -11,14 +11,15 @@
         <relativePath/>
     </parent>
 
-    <groupId>au.com.sydneytv</groupId>
-    <artifactId>tv-guide</artifactId>
+    <groupId>com.newscloud</groupId>
+    <artifactId>news-wordcloud</artifactId>
     <version>1.0.0</version>
-    <name>sydney-tv-guide</name>
-    <description>TV guide for free-to-air Sydney television</description>
+    <name>news-wordcloud</name>
+    <description>Trending words and phrases pulled from live news feeds</description>
 
     <properties>
         <java.version>17</java.version>
+        <rome.version>2.1.0</rome.version>
     </properties>
 
     <dependencies>
@@ -29,6 +30,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rometools</groupId>
+            <artifactId>rome</artifactId>
+            <version>${rome.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

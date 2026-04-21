@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>News Word Cloud</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<header>
+    <h1>News Word Cloud</h1>
+    <p class="tagline">
+        Trending words and phrases aggregated from live news feeds.
+    </p>
+    <div class="meta">
+        <span th:if="${snapshot.articleCount > 0}">
+            <strong th:text="${snapshot.articleCount}">0</strong> articles
+            across
+            <strong th:text="${#lists.size(snapshot.sources)}">0</strong> sources
+            · last refreshed
+            <time th:text="${#temporals.format(snapshot.generatedAt, 'HH:mm')}">--:--</time>
+            UTC
+        </span>
+        <span th:if="${snapshot.articleCount == 0}" class="warn">
+            No articles loaded yet — check <code>newscloud.feeds</code> configuration.
+        </span>
+    </div>
+    <ul class="sources" th:if="${not #lists.isEmpty(snapshot.sources)}">
+        <li th:each="s : ${snapshot.sources}" th:text="${s}">Source</li>
+    </ul>
+</header>
+
+<main>
+    <div id="cloud" role="img" aria-label="Trending word cloud"></div>
+
+    <aside class="top-list" th:if="${not #lists.isEmpty(snapshot.words)}">
+        <h2>Top 25</h2>
+        <ol>
+            <li th:each="w, iter : ${snapshot.words}" th:if="${iter.index < 25}">
+                <span class="rank" th:text="${iter.count}">1</span>
+                <span class="term" th:text="${w.text}">word</span>
+                <span class="count" th:text="${w.count}">0</span>
+                <span class="badge" th:if="${w.phrase}">phrase</span>
+            </li>
+        </ol>
+    </aside>
+</main>
+
+<footer>
+    <p>
+        Powered by <a href="https://rometools.github.io/rome/">Rome</a> for feed parsing and
+        <a href="https://github.com/timdream/wordcloud2.js">wordcloud2.js</a> for the cloud rendering.
+    </p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
+<script th:src="@{/js/cloud.js}"></script>
+</body>
+</html>
