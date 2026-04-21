@@ -95,20 +95,28 @@
             return;
         }
         const rect = container.getBoundingClientRect();
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const cssW = Math.max(240, rect.width);
+        const cssH = Math.max(320, rect.height);
         const canvas = document.createElement('canvas');
-        canvas.width = Math.max(600, rect.width);
-        canvas.height = Math.max(480, rect.height);
+        canvas.width = Math.round(cssW * dpr);
+        canvas.height = Math.round(cssH * dpr);
+        canvas.style.width = cssW + 'px';
+        canvas.style.height = cssH + 'px';
         container.innerHTML = '';
         container.appendChild(canvas);
         canvas.style.cursor = 'pointer';
 
         const maxCount = words[0][1];
+        // Scale font sizes to the container so words never swamp a phone.
+        const maxWord = Math.min(72, Math.max(28, cssW * 0.18));
+        const minWord = Math.max(10, Math.min(14, cssW * 0.035));
 
         WordCloud(canvas, {
             list: words,
             fontFamily: 'Helvetica, Arial, sans-serif',
             weightFactor: function (count) {
-                return Math.max(12, (count / maxCount) * 70);
+                return Math.max(minWord, (count / maxCount) * maxWord) * dpr;
             },
             color: function () {
                 return palette[Math.floor(Math.random() * palette.length)];
@@ -116,7 +124,7 @@
             backgroundColor: 'transparent',
             rotateRatio: 0.25 + Math.random() * 0.3,
             rotationSteps: 2,
-            gridSize: 6 + Math.floor(Math.random() * 6),
+            gridSize: Math.round((6 + Math.floor(Math.random() * 6)) * dpr),
             shrinkToFit: true,
             shuffle: true,
             click: function (item) {

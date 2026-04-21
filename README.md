@@ -42,6 +42,8 @@ The prompts used to create this app, in order:
 11. > Doesn't seem like you are filtering words I exclude right at the start
     > like app
 
+12. > Make the site better for mobile use
+
 ## Database Configuration
 
 The app persists stop words (excluded terms) across restarts using a database.
