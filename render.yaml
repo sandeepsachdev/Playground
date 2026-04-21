@@ -13,20 +13,20 @@ services:
       # persist the stop-word list in Render's managed Postgres. Leaving
       # them commented keeps the default embedded H2 datasource, so the
       # app still runs on the free plan.
-      # - key: SPRING_DATASOURCE_URL
-      #   fromDatabase:
-      #     name: newscloud-db
-      #     property: connectionString
-      # - key: SPRING_DATASOURCE_USERNAME
-      #   fromDatabase:
-      #     name: newscloud-db
-      #     property: user
-      # - key: SPRING_DATASOURCE_PASSWORD
-      #   fromDatabase:
-      #     name: newscloud-db
-      #     property: password
-      # - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
-      #   value: org.postgresql.Driver
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: newscloud-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: newscloud-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: newscloud-db
+          property: password
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: org.postgresql.Driver
 
 # databases:
 #   - name: newscloud-db

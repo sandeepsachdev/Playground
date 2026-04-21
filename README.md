@@ -52,21 +52,16 @@ By default the app uses an H2 file database stored at `/tmp/newscloud/newscloud`
 
 ### PostgreSQL (e.g. Render)
 
-To use a managed Postgres instance, set the following environment variables. The app will pick them up automatically via Spring Boot's property override mechanism.
+> **Important — variable naming:** Spring Boot maps environment variables to properties by converting `UPPERCASE_UNDERSCORE` names to `lowercase.dot` form. You **must** use the uppercase form below. A variable literally named `spring.datasource.url` (with dots) will **not** be picked up.
 
-| Variable                               | Example value                                        |
-|----------------------------------------|------------------------------------------------------|
-| `SPRING_DATASOURCE_URL`                | `jdbc:postgresql://hostname:5432/dbname`             |
-| `SPRING_DATASOURCE_USERNAME`           | `myuser`                                             |
-| `SPRING_DATASOURCE_PASSWORD`           | `secret`                                             |
-| `SPRING_DATASOURCE_DRIVER_CLASS_NAME`  | `org.postgresql.Driver`                              |
+Set these three environment variables in the Render dashboard (Environment tab):
 
-`SPRING_DATASOURCE_DRIVER_CLASS_NAME` is optional — Spring Boot can infer the driver from the JDBC URL — but setting it explicitly avoids any ambiguity.
+| Render env var name            | Value                                                       |
+|--------------------------------|-------------------------------------------------------------|
+| `SPRING_DATASOURCE_URL`        | `jdbc:postgresql://hostname:5432/dbname?sslmode=require`    |
+| `SPRING_DATASOURCE_USERNAME`   | `myuser`                                                    |
+| `SPRING_DATASOURCE_PASSWORD`   | `secret`                                                    |
 
-#### Render shortcut — `DATABASE_URL`
-
-Render automatically injects a `DATABASE_URL` environment variable for linked databases in the format `postgres://user:password@host:5432/dbname`. The app detects this and converts it to the required `jdbc:postgresql://` form, so you can simply link the database to the service in the Render dashboard without setting any extra variables.
-
-If you prefer to copy the connection string manually, use the **Internal Database URL** from the Render database dashboard and set it as `SPRING_DATASOURCE_URL`. Note that Render's URL starts with `postgres://` — the app normalises this automatically, but Spring Boot itself requires the `jdbc:postgresql://` prefix, so do not pass the raw URL to any other Spring property.
+The URL must start with `jdbc:postgresql://`. Use the **JDBC URI** from the Render database dashboard (not the "External Database URL" which starts with `postgres://`).
 
 The JPA DDL mode is set to `update`, so existing tables are preserved and new columns are added automatically on deployment.
