@@ -34,3 +34,7 @@ The prompts used to create this app, in order:
 
 8. > try to filter out any words which are not likely to be useful to show
    > trending words in news
+
+9. > Exclude all words commonly associated with the Iran war
+
+10. > Hide the top 25 list by default
