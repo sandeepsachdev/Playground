@@ -3,6 +3,8 @@ package com.newscloud.service;
 import com.newscloud.model.StopWord;
 import com.newscloud.repository.StopWordRepository;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +28,8 @@ import java.util.Set;
  */
 @Component
 public class StopWordFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(StopWordFilter.class);
 
     private final StopWordRepository repository;
 
@@ -61,6 +65,8 @@ public class StopWordFilter {
         }
         this.stopWords = Collections.unmodifiableSet(words);
         this.stopFragments = Collections.unmodifiableList(fragments);
+        log.info("Loaded {} stop-word entries ({} exact, {} fragments)",
+                words.size() + fragments.size(), words.size(), fragments.size());
     }
 
     public boolean isStopWord(String word) {
@@ -81,6 +87,14 @@ public class StopWordFilter {
 
     public int size() {
         return stopWords.size() + stopFragments.size();
+    }
+
+    public Set<String> exactWords() {
+        return stopWords;
+    }
+
+    public List<String> fragments() {
+        return stopFragments;
     }
 
     /**

@@ -38,3 +38,6 @@ The prompts used to create this app, in order:
 9. > Exclude all words commonly associated with the Iran war
 
 10. > Hide the top 25 list by default
+
+11. > Doesn't seem like you are filtering words I exclude right at the start
+    > like app
