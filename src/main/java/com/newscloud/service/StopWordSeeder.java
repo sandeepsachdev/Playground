@@ -34,12 +34,14 @@ public class StopWordSeeder {
     ApplicationRunner seedStopWords(StopWordRepository repository, StopWordFilter filter) {
         return args -> {
             List<StopWord> rows = readSeedResource("stopwords.txt");
+            log.info("stopwords.txt contains {} entries; checking database for missing rows", rows.size());
             List<StopWord> missing = new ArrayList<>();
             for (StopWord row : rows) {
                 if (!repository.existsByWord(row.getWord())) {
                     missing.add(row);
                 }
             }
+            log.info("{} entries not yet in database", missing.size());
             if (!missing.isEmpty()) {
                 repository.saveAll(missing);
                 log.info("Seeded {} new stop words from stopwords.txt", missing.size());
