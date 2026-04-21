@@ -646,6 +646,7 @@ girls
 person
 persons
 folks
+football
 # Large-number units
 hundred
 hundreds
