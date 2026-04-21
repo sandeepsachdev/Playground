@@ -17,3 +17,6 @@ The prompts used to create this app, in order:
    > dialog window should the articies with the word. Each articule should show
    > the title and short discription and should be clickable to open the
    > articles in a new window
+
+5. > filter out the words continue people government police video free follow
+   > old court donald trump email help home man talks app

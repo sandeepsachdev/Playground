@@ -202,6 +202,23 @@ since
 back
 like
 amp
+continue
+people
+government
+police
+video
+free
+follow
+old
+court
+donald
+trump
+email
+help
+home
+man
+talks
+app
 # Substring fragments — any token containing one of these is dropped.
 ~australia
 ~read
