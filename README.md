@@ -12,3 +12,8 @@ The prompts used to create this app, in order:
    > in a new window.
 
 3. > filter out any words containing australia, read, podcast, live, blog
+
+4. > instead of opening a new window when you click on a word instead display a
+   > dialog window should the articies with the word. Each articule should show
+   > the title and short discription and should be clickable to open the
+   > articles in a new window

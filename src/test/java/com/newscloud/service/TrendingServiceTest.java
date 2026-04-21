@@ -103,7 +103,8 @@ class TrendingServiceTest {
         TrendingSnapshot current = service.snapshot();
         ReflectionTestUtils.setField(service, "cached",
                 new TrendingSnapshot(Instant.now().minusSeconds(60 * 60 * 24),
-                        current.articleCount(), current.sources(), current.words()));
+                        current.articleCount(), current.sources(), current.words(),
+                        current.articles()));
 
         service.snapshot();
         assertThat(calls[0]).isEqualTo(2);

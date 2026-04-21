@@ -3,8 +3,10 @@ package com.newscloud.service;
 import com.newscloud.config.FeedProperties;
 import com.newscloud.config.FeedProperties.FeedSource;
 import com.newscloud.model.Article;
+import com.newscloud.model.ArticleSummary;
 import com.newscloud.model.TrendingSnapshot;
 import com.newscloud.model.WordFrequency;
+import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -83,14 +85,41 @@ public class TrendingService {
         }
 
         List<WordFrequency> words = textAnalyzer.analyze(articles);
-        cached = new TrendingSnapshot(Instant.now(), articles.size(), sources, words);
+        List<ArticleSummary> summaries = articles.stream().map(TrendingService::toSummary).toList();
+        cached = new TrendingSnapshot(Instant.now(), articles.size(), sources, words, summaries);
         log.info("Refreshed trending snapshot: {} articles across {} sources, {} ranked terms",
                 articles.size(), sources.size(), words.size());
         return cached;
     }
 
     private TrendingSnapshot empty() {
-        return new TrendingSnapshot(Instant.now(), 0, List.of(), List.of());
+        return new TrendingSnapshot(Instant.now(), 0, List.of(), List.of(), List.of());
+    }
+
+    private static ArticleSummary toSummary(Article article) {
+        return new ArticleSummary(
+                plainText(article.title()),
+                truncate(plainText(article.description()), 240),
+                article.link(),
+                article.source());
+    }
+
+    private static String plainText(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        return Jsoup.parse(raw).text().trim();
+    }
+
+    private static String truncate(String text, int max) {
+        if (text.length() <= max) {
+            return text;
+        }
+        int cut = text.lastIndexOf(' ', max);
+        if (cut < max / 2) {
+            cut = max;
+        }
+        return text.substring(0, cut).trim() + "…";
     }
 
     private boolean isExpired(TrendingSnapshot snapshot) {

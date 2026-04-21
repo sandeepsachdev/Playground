@@ -160,3 +160,106 @@ footer {
 footer a {
     color: var(--accent);
 }
+
+#article-dialog {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0;
+    max-width: 720px;
+    width: 90%;
+    max-height: 80vh;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+#article-dialog::backdrop {
+    background: rgba(3, 6, 16, 0.7);
+    backdrop-filter: blur(2px);
+}
+
+#article-dialog .dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+}
+
+#article-dialog h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--accent);
+}
+
+#article-dialog h2 .term-chip {
+    color: var(--accent-2);
+    font-weight: 700;
+}
+
+#article-dialog .close {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+}
+
+#article-dialog .close:hover {
+    color: var(--text);
+    border-color: var(--accent);
+}
+
+#article-dialog .article-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    max-height: calc(80vh - 60px);
+    overflow: auto;
+}
+
+#article-dialog .article-list li {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+}
+
+#article-dialog .article-list li:last-child {
+    border-bottom: none;
+}
+
+#article-dialog .article-list li:hover {
+    background: rgba(110, 231, 255, 0.08);
+}
+
+#article-dialog .article-title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+
+#article-dialog .article-meta {
+    color: var(--accent);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+}
+
+#article-dialog .article-desc {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+#article-dialog .empty {
+    padding: 1.5rem 1.25rem;
+    color: var(--muted);
+    text-align: center;
+}
