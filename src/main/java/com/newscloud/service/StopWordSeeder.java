@@ -20,9 +20,10 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * On first startup (empty table) seeds the {@code stop_words} table from the
- * bundled {@code stopwords.txt} classpath resource. Lines prefixed with
- * {@code ~} are inserted as fragment matches.
+ * On every startup, tops up the {@code stop_words} table with any entries
+ * from the bundled {@code stopwords.txt} classpath resource that aren't
+ * already present. Lines prefixed with {@code ~} are inserted as fragment
+ * matches. Rows inserted at runtime via the API are preserved.
  */
 @Configuration
 public class StopWordSeeder {
@@ -32,17 +33,18 @@ public class StopWordSeeder {
     @Bean
     ApplicationRunner seedStopWords(StopWordRepository repository, StopWordFilter filter) {
         return args -> {
-            if (repository.count() > 0) {
-                filter.reload();
-                return;
-            }
             List<StopWord> rows = readSeedResource("stopwords.txt");
-            if (rows.isEmpty()) {
-                return;
+            List<StopWord> missing = new ArrayList<>();
+            for (StopWord row : rows) {
+                if (!repository.existsByWord(row.getWord())) {
+                    missing.add(row);
+                }
             }
-            repository.saveAll(rows);
+            if (!missing.isEmpty()) {
+                repository.saveAll(missing);
+                log.info("Seeded {} new stop words from stopwords.txt", missing.size());
+            }
             filter.reload();
-            log.info("Seeded {} stop words from stopwords.txt", rows.size());
         };
     }
 

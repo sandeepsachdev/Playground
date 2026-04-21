@@ -31,3 +31,6 @@ The prompts used to create this app, in order:
    > startup. Provide a way to exclude words that appear in the right hand
    > side list using a button. Provide a way to show and hide the right hand
    > list of top words.
+
+8. > try to filter out any words which are not likely to be useful to show
+   > trending words in news
