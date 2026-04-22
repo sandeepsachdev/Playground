@@ -53,6 +53,9 @@ The prompts used to create this app, in order:
 
 16. > Clicking on items works on desktop but not on mobile devices
 
+17. > Still not working. This was working before the change to only show
+    > phrases
+
 ## Database Configuration
 
 The app persists stop words (excluded terms) across restarts using a database.

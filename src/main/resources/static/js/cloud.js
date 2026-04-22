@@ -98,12 +98,13 @@
             WordCloud.stop();
         }
         const rect = container.getBoundingClientRect();
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
         const cssW = Math.max(240, rect.width);
         const cssH = Math.max(320, rect.height);
         const canvas = document.createElement('canvas');
-        canvas.width = Math.round(cssW * dpr);
-        canvas.height = Math.round(cssH * dpr);
+        // Keep canvas internal resolution in CSS pixels so wordcloud2's hit-test
+        // (which divides offsetX/offsetY by gridSize) stays aligned with taps.
+        canvas.width = Math.round(cssW);
+        canvas.height = Math.round(cssH);
         canvas.style.width = cssW + 'px';
         canvas.style.height = cssH + 'px';
         container.innerHTML = '';
@@ -119,7 +120,7 @@
             list: words,
             fontFamily: 'Helvetica, Arial, sans-serif',
             weightFactor: function (count) {
-                return Math.max(minWord, (count / maxCount) * maxWord) * dpr;
+                return Math.max(minWord, (count / maxCount) * maxWord);
             },
             color: function () {
                 return palette[Math.floor(Math.random() * palette.length)];
@@ -127,7 +128,7 @@
             backgroundColor: 'transparent',
             rotateRatio: 0.25 + Math.random() * 0.3,
             rotationSteps: 2,
-            gridSize: Math.round((6 + Math.floor(Math.random() * 6)) * dpr),
+            gridSize: 6 + Math.floor(Math.random() * 6),
             shrinkToFit: true,
             shuffle: true,
             // Yield to the browser between word placements so taps stay responsive on mobile.
