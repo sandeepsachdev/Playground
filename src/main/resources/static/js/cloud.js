@@ -6,6 +6,7 @@
 
     const palette = ['#6ee7ff', '#f5b301', '#9ad36b', '#ff8a80', '#c9b1ff', '#ffb870'];
     const REFRESH_MS = 120000;
+    const SOURCE_CYCLE_MS = 20000;
 
     const dialog = document.getElementById('article-dialog');
     const dialogTerm = dialog ? dialog.querySelector('.term-chip') : null;
@@ -15,9 +16,12 @@
     const main = document.querySelector('main');
     const toggleBtn = document.getElementById('toggle-top');
     const topListAside = document.getElementById('top-list');
+    const sourceLabel = document.getElementById('source-label');
 
-    let currentWords = [];
-    let articles = [];
+    let allArticles = [];
+    let sourceCycle = [];
+    let cycleIndex = 0;
+    let cycleTimer = null;
 
     if (dialog) {
         dialogClose.addEventListener('click', function () { dialog.close(); });
@@ -55,12 +59,20 @@
         return haystack.indexOf(term) !== -1;
     }
 
+    function currentEntry() {
+        return sourceCycle.length > 0 ? sourceCycle[cycleIndex % sourceCycle.length] : null;
+    }
+
     function showArticlesFor(term) {
         if (!dialog || !term) {
             return;
         }
         const needle = term.toLowerCase();
-        const matches = articles.filter(function (a) { return matchesTerm(a, needle); });
+        const entry = currentEntry();
+        const pool = entry && entry.source ?
+            allArticles.filter(function (a) { return a.source === entry.source; }) :
+            allArticles;
+        const matches = pool.filter(function (a) { return matchesTerm(a, needle); });
 
         dialogTerm.textContent = term;
         dialogList.innerHTML = '';
@@ -203,6 +215,58 @@
         });
     }
 
+    function toPairs(words) {
+        return words.map(function (w) { return [w.text, w.count]; });
+    }
+
+    function setSourceLabel(text) {
+        if (sourceLabel) {
+            sourceLabel.textContent = text || '';
+        }
+    }
+
+    function showCurrent() {
+        const entry = currentEntry();
+        if (!entry) {
+            setSourceLabel('');
+            render([]);
+            rebuildTopList([]);
+            return;
+        }
+        setSourceLabel(entry.label);
+        rebuildTopList(entry.words);
+        render(toPairs(entry.words));
+    }
+
+    function advanceCycle() {
+        if (sourceCycle.length <= 1) { return; }
+        if (document.hidden) { return; }
+        if (dialog && dialog.open) { return; }
+        cycleIndex = (cycleIndex + 1) % sourceCycle.length;
+        showCurrent();
+    }
+
+    function startCycle() {
+        if (cycleTimer) { clearInterval(cycleTimer); }
+        cycleTimer = setInterval(advanceCycle, SOURCE_CYCLE_MS);
+    }
+
+    function buildSourceCycle(snapshot) {
+        const perSource = snapshot.sourceWords || [];
+        const cycle = perSource
+            .filter(function (s) { return s.words && s.words.length > 0; })
+            .map(function (s) {
+                return { source: s.source, label: s.source, words: s.words };
+            });
+        if (cycle.length === 0) {
+            const words = snapshot.words || [];
+            if (words.length > 0) {
+                cycle.push({ source: null, label: 'All sources', words: words });
+            }
+        }
+        return cycle;
+    }
+
     function loadSnapshot() {
         return fetch('/api/trending', { headers: { 'Accept': 'application/json' } })
             .then(function (response) {
@@ -212,21 +276,31 @@
                 return response.json();
             })
             .then(function (snapshot) {
-                articles = snapshot.articles || [];
-                const words = snapshot.words || [];
-                currentWords = words.map(function (w) { return [w.text, w.count]; });
-                rebuildTopList(words);
-                render(currentWords);
+                allArticles = snapshot.articles || [];
+                const previousSource = currentEntry() ? currentEntry().source : null;
+                sourceCycle = buildSourceCycle(snapshot);
+                cycleIndex = 0;
+                if (previousSource) {
+                    for (let i = 0; i < sourceCycle.length; i++) {
+                        if (sourceCycle[i].source === previousSource) {
+                            cycleIndex = i;
+                            break;
+                        }
+                    }
+                }
+                showCurrent();
             });
     }
 
     wireTopList();
-    loadSnapshot().catch(function (err) {
-        container.textContent = 'Could not load the word cloud: ' + err.message;
-    });
+    loadSnapshot()
+        .then(startCycle)
+        .catch(function (err) {
+            container.textContent = 'Could not load the word cloud: ' + err.message;
+        });
     setInterval(function () {
         if (document.hidden) { return; }
         if (dialog && dialog.open) { return; }
-        render(currentWords);
+        loadSnapshot().catch(function () { /* keep cycling with prior data */ });
     }, REFRESH_MS);
 })();

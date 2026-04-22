@@ -8,6 +8,7 @@ public record TrendingSnapshot(
         int articleCount,
         List<String> sources,
         List<WordFrequency> words,
-        List<ArticleSummary> articles
+        List<ArticleSummary> articles,
+        List<SourceWords> sourceWords
 ) {
 }
