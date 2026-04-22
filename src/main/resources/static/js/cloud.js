@@ -5,7 +5,7 @@
     }
 
     const palette = ['#6ee7ff', '#f5b301', '#9ad36b', '#ff8a80', '#c9b1ff', '#ffb870'];
-    const REFRESH_MS = 10000;
+    const REFRESH_MS = 120000;
 
     const dialog = document.getElementById('article-dialog');
     const dialogTerm = dialog ? dialog.querySelector('.term-chip') : null;

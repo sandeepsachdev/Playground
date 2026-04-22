@@ -49,6 +49,8 @@ The prompts used to create this app, in order:
 14. > The ui is sometimes not responding on mobile. Especially the show top
     > words button
 
+15. > change the resfresh to only be every 2 minutes
+
 ## Database Configuration
 
 The app persists stop words (excluded terms) across restarts using a database.
