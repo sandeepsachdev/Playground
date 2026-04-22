@@ -46,6 +46,9 @@ The prompts used to create this app, in order:
 
 13. > Only use phrases not single words
 
+14. > The ui is sometimes not responding on mobile. Especially the show top
+    > words button
+
 ## Database Configuration
 
 The app persists stop words (excluded terms) across restarts using a database.

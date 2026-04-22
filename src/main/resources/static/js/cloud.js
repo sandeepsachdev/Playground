@@ -94,6 +94,9 @@
             container.textContent = 'No trending words yet. Configure feeds and retry.';
             return;
         }
+        if (typeof WordCloud.stop === 'function') {
+            WordCloud.stop();
+        }
         const rect = container.getBoundingClientRect();
         const dpr = Math.max(1, window.devicePixelRatio || 1);
         const cssW = Math.max(240, rect.width);
@@ -127,6 +130,8 @@
             gridSize: Math.round((6 + Math.floor(Math.random() * 6)) * dpr),
             shrinkToFit: true,
             shuffle: true,
+            // Yield to the browser between word placements so taps stay responsive on mobile.
+            wait: 1,
             click: function (item) {
                 if (item && item[0]) {
                     showArticlesFor(item[0]);
@@ -218,5 +223,9 @@
     loadSnapshot().catch(function (err) {
         container.textContent = 'Could not load the word cloud: ' + err.message;
     });
-    setInterval(function () { render(currentWords); }, REFRESH_MS);
+    setInterval(function () {
+        if (document.hidden) { return; }
+        if (dialog && dialog.open) { return; }
+        render(currentWords);
+    }, REFRESH_MS);
 })();
