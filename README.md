@@ -56,6 +56,8 @@ The prompts used to create this app, in order:
 17. > Still not working. This was working before the change to only show
     > phrases
 
+18. > Revert back to before the change to only show phrases
+
 ## Database Configuration
 
 The app persists stop words (excluded terms) across restarts using a database.
