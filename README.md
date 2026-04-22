@@ -51,6 +51,8 @@ The prompts used to create this app, in order:
 
 15. > change the resfresh to only be every 2 minutes
 
+16. > Clicking on items works on desktop but not on mobile devices
+
 ## Database Configuration
 
 The app persists stop words (excluded terms) across restarts using a database.
