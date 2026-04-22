@@ -26,6 +26,7 @@ class TrendingServiceTest {
         FeedProperties properties = new FeedProperties();
         properties.setFeeds(List.of(new FeedSource("Fake Wire", "https://example.com/feed.xml")));
         properties.setTopN(20);
+        properties.setPhrasesOnly(false);
 
         List<Article> fixture = List.of(
                 new Article("Sydney summit climate", "Climate summit in Sydney", "Fake Wire",

@@ -89,6 +89,7 @@ class TextAnalyzerTest {
         p.setTopN(100);
         p.setMinTokenLength(3);
         p.setIncludePhrases(true);
+        p.setPhrasesOnly(false);
         return p;
     }
 

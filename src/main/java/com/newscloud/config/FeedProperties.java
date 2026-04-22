@@ -27,6 +27,9 @@ public class FeedProperties {
     /** Include two-word phrases (bigrams) alongside single words. */
     private boolean includePhrases = true;
 
+    /** When true, drop single words and only return multi-word phrases. */
+    private boolean phrasesOnly = true;
+
     public List<FeedSource> getFeeds() {
         return feeds;
     }
@@ -73,6 +76,14 @@ public class FeedProperties {
 
     public void setIncludePhrases(boolean includePhrases) {
         this.includePhrases = includePhrases;
+    }
+
+    public boolean isPhrasesOnly() {
+        return phrasesOnly;
+    }
+
+    public void setPhrasesOnly(boolean phrasesOnly) {
+        this.phrasesOnly = phrasesOnly;
     }
 
     public static class FeedSource {

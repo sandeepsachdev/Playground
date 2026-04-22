@@ -44,6 +44,8 @@ The prompts used to create this app, in order:
 
 12. > Make the site better for mobile use
 
+13. > Only use phrases not single words
+
 ## Database Configuration
 
 The app persists stop words (excluded terms) across restarts using a database.
