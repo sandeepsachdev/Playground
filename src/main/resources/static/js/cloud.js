@@ -20,6 +20,7 @@
     let allArticles = [];
     let sourceCycle = [];
     let cycleIndex = 0;
+    let renderGen = 0;
 
     if (dialog) {
         dialogClose.addEventListener('click', function () { dialog.close(); });
@@ -100,6 +101,8 @@
     }
 
     function render(words) {
+        const myGen = ++renderGen;
+
         if (!words || words.length === 0) {
             container.textContent = 'No trending words yet. Configure feeds and retry.';
             return;
@@ -129,6 +132,7 @@
             gridSize: 6 + Math.floor(Math.random() * 6),
             shrinkToFit: true,
             shuffle: true,
+            abort: function () { return renderGen !== myGen; },
             click: function (item) {
                 if (item && item[0]) {
                     showArticlesFor(item[0]);
