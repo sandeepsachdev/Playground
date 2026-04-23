@@ -7,6 +7,7 @@
     const palette = ['#6ee7ff', '#f5b301', '#9ad36b', '#ff8a80', '#c9b1ff', '#ffb870'];
     const REFRESH_MS = 120000;
     const SOURCE_CYCLE_MS = 20000;
+    const CLOUD_WORD_LIMIT = 50;
 
     const dialog = document.getElementById('article-dialog');
     const dialogTerm = dialog ? dialog.querySelector('.term-chip') : null;
@@ -23,6 +24,7 @@
     let cycleIndex = 0;
     let cycleTimer = null;
     let renderTimer = null;
+    let renderGen = 0;
 
     if (dialog) {
         dialogClose.addEventListener('click', function () { dialog.close(); });
@@ -31,6 +33,10 @@
                 dialog.close();
             }
         });
+        // Re-render after dialog closes so the canvas gets a fresh event-handler
+        // registration. On mobile, dismissing a modal can leave touch routing in a
+        // confused state; a new canvas clears it.
+        dialog.addEventListener('close', function () { showCurrent(); });
     }
 
     if (toggleBtn && main) {
@@ -65,7 +71,7 @@
     }
 
     function showArticlesFor(term) {
-        if (!dialog || !term) {
+        if (!dialog || !term || dialog.open) {
             return;
         }
         const needle = term.toLowerCase();
@@ -120,6 +126,7 @@
             WordCloud.stop();
         }
 
+        const myGen = ++renderGen;
         const rect = container.getBoundingClientRect();
         const cssW = Math.max(240, rect.width);
         const cssH = Math.max(320, rect.height);
@@ -139,12 +146,12 @@
         const maxWord = Math.min(72, Math.max(28, cssW * 0.18));
         const minWord = Math.max(10, Math.min(14, cssW * 0.035));
 
-        // Defer the WordCloud() call so the pending wait:1 step-callbacks from the
-        // previous render can fire, see escapeTime in the past, and exit before the
-        // new render resets it. Without this gap, old renders accumulate and flood
-        // the mobile event loop, causing the freeze after the 3rd cloud.
+        // Defer WordCloud() so any pending wait:1 step-callbacks from the stopped
+        // render can fire and exit before the new render resets the internal timer
+        // state. 50 ms is enough headroom even on throttled mobile timers.
         renderTimer = setTimeout(function () {
             renderTimer = null;
+            if (renderGen !== myGen) { return; }
             WordCloud(canvas, {
                 list: words,
                 fontFamily: 'Helvetica, Arial, sans-serif',
@@ -168,7 +175,7 @@
                     }
                 }
             });
-        }, 10);
+        }, 50);
     }
 
     function rebuildTopList(words) {
@@ -253,7 +260,7 @@
         }
         setSourceLabel(entry.label);
         rebuildTopList(entry.words);
-        render(toPairs(entry.words));
+        render(toPairs(entry.words.slice(0, CLOUD_WORD_LIMIT)));
     }
 
     function advanceCycle() {
@@ -309,6 +316,23 @@
                 showCurrent();
             });
     }
+
+    // When the tab is hidden, stop any active render so throttled mobile timers
+    // don't pile up and flood the event loop on return. Re-render on visibility
+    // restore so the canvas and its touch handlers are always fresh.
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            if (renderTimer) {
+                clearTimeout(renderTimer);
+                renderTimer = null;
+            }
+            if (typeof WordCloud.stop === 'function') {
+                WordCloud.stop();
+            }
+        } else {
+            showCurrent();
+        }
+    });
 
     wireTopList();
     loadSnapshot()
