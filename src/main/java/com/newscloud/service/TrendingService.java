@@ -4,6 +4,7 @@ import com.newscloud.config.FeedProperties;
 import com.newscloud.config.FeedProperties.FeedSource;
 import com.newscloud.model.Article;
 import com.newscloud.model.ArticleSummary;
+import com.newscloud.model.SourceWords;
 import com.newscloud.model.TrendingSnapshot;
 import com.newscloud.model.WordFrequency;
 import org.jsoup.Jsoup;
@@ -16,7 +17,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -95,14 +98,34 @@ public class TrendingService {
 
         List<WordFrequency> words = textAnalyzer.analyze(articles);
         List<ArticleSummary> summaries = articles.stream().map(TrendingService::toSummary).toList();
-        cached = new TrendingSnapshot(Instant.now(), articles.size(), sources, words, summaries);
+        List<SourceWords> perSource = analyzePerSource(articles, sources);
+        cached = new TrendingSnapshot(Instant.now(), articles.size(), sources, words, summaries, perSource);
         log.info("Refreshed trending snapshot: {} articles across {} sources, {} ranked terms",
                 articles.size(), sources.size(), words.size());
         return cached;
     }
 
+    private List<SourceWords> analyzePerSource(List<Article> articles, List<String> orderedSources) {
+        Map<String, List<Article>> bySource = new LinkedHashMap<>();
+        for (String name : orderedSources) {
+            bySource.put(name, new ArrayList<>());
+        }
+        for (Article article : articles) {
+            bySource.computeIfAbsent(article.source(), k -> new ArrayList<>()).add(article);
+        }
+        List<SourceWords> result = new ArrayList<>(bySource.size());
+        for (Map.Entry<String, List<Article>> entry : bySource.entrySet()) {
+            List<Article> sourceArticles = entry.getValue();
+            if (sourceArticles.isEmpty()) {
+                continue;
+            }
+            result.add(new SourceWords(entry.getKey(), textAnalyzer.analyze(sourceArticles)));
+        }
+        return result;
+    }
+
     private TrendingSnapshot empty() {
-        return new TrendingSnapshot(Instant.now(), 0, List.of(), List.of(), List.of());
+        return new TrendingSnapshot(Instant.now(), 0, List.of(), List.of(), List.of(), List.of());
     }
 
     private static ArticleSummary toSummary(Article article) {
