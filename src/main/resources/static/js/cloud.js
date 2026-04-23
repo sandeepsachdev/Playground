@@ -267,4 +267,10 @@
         container.textContent = 'Could not load the word cloud: ' + err.message;
     });
     setInterval(advanceCycle, REFRESH_MS);
+
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+            loadSnapshot().catch(function () {});
+        }
+    });
 })();
