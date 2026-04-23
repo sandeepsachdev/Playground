@@ -19,10 +19,8 @@
             across
             <strong th:text="${#lists.size(snapshot.sources)}">0</strong> sources
             · last refreshed
-            <time id="last-refreshed"
-                  th:attr="datetime=${snapshot.generatedAt}"
-                  th:text="${#temporals.format(snapshot.generatedAt, 'HH:mm')}">--:--</time>
-            local time
+            <time th:text="${#temporals.format(snapshot.generatedAt, 'HH:mm')}">--:--</time>
+            UTC
         </span>
         <span th:if="${snapshot.articleCount == 0}" class="warn">
             No articles loaded yet — check <code>newscloud.feeds</code> configuration.
