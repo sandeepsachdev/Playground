@@ -10,25 +10,18 @@
 <body>
 <header>
     <h1>News Word Cloud</h1>
-    <p class="tagline">
-        Trending words and phrases aggregated from live news feeds.
-    </p>
     <div class="meta">
         <span th:if="${snapshot.articleCount > 0}">
             <strong th:text="${snapshot.articleCount}">0</strong> articles
             across
             <strong th:text="${#lists.size(snapshot.sources)}">0</strong> sources
             · last refreshed
-            <time th:text="${#temporals.format(snapshot.generatedAt, 'HH:mm')}">--:--</time>
-            UTC
+            <time id="last-refreshed" th:attr="data-ts=${snapshot.generatedAt.toEpochMilli()}">--:--</time>
         </span>
         <span th:if="${snapshot.articleCount == 0}" class="warn">
             No articles loaded yet — check <code>newscloud.feeds</code> configuration.
         </span>
     </div>
-    <ul class="sources" th:if="${not #lists.isEmpty(snapshot.sources)}">
-        <li th:each="s : ${snapshot.sources}" th:text="${s}">Source</li>
-    </ul>
 </header>
 
 <main class="hide-top">
@@ -71,5 +64,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
 <script th:src="@{/js/cloud.js}"></script>
+<script>
+  const el = document.getElementById('last-refreshed');
+  if (el && el.dataset.ts) {
+    el.textContent = new Date(+el.dataset.ts).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+  }
+</script>
 </body>
 </html>
