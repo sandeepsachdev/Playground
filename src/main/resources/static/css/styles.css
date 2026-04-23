@@ -88,6 +88,8 @@ main {
     width: 100%;
     height: 100%;
     display: block;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 .top-list {
@@ -132,6 +134,8 @@ main {
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(255, 138, 128, 0.25);
 }
 
 .top-list .exclude:hover {
@@ -173,14 +177,16 @@ main {
     position: absolute;
     top: 0.75rem;
     right: 0.75rem;
-    z-index: 2;
-    background: rgba(20, 26, 51, 0.85);
+    z-index: 5;
+    background: rgba(20, 26, 51, 0.92);
     border: 1px solid var(--border);
     color: var(--muted);
     font-size: 0.75rem;
     padding: 0.3rem 0.65rem;
     border-radius: 6px;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 .toggle-top:hover {
@@ -208,6 +214,8 @@ main.hide-top .top-list {
 
 .term {
     font-weight: 600;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 .count {
@@ -284,6 +292,8 @@ footer a {
     line-height: 1;
     padding: 0.3rem 0.6rem;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 #article-dialog .close:hover {
@@ -303,6 +313,8 @@ footer a {
     padding: 0.75rem 1.25rem;
     border-bottom: 1px solid var(--border);
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 #article-dialog .article-list li:last-child {
@@ -337,4 +349,95 @@ footer a {
     padding: 1.5rem 1.25rem;
     color: var(--muted);
     text-align: center;
+}
+
+@media (max-width: 600px) {
+    header {
+        padding: 1.25rem 1rem 0.75rem;
+    }
+    header h1 {
+        font-size: 1.35rem;
+    }
+    .tagline {
+        font-size: 0.9rem;
+    }
+    .meta {
+        font-size: 0.85rem;
+    }
+    .sources li {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.5rem;
+    }
+    main {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+    #cloud {
+        min-height: 62vh;
+        padding: 0.5rem;
+        border-radius: 10px;
+    }
+    .source-label {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.55rem;
+        max-width: calc(100% - 9rem);
+    }
+    .toggle-top {
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
+        min-height: 44px;
+    }
+    .top-list {
+        padding: 0.75rem 0.9rem;
+        max-height: none;
+        border-radius: 10px;
+    }
+    .top-list h2 {
+        font-size: 1rem;
+    }
+    .top-list li {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.5rem;
+    }
+    .top-list li .term {
+        flex: 1 1 auto;
+        min-width: 0;
+        word-break: break-word;
+    }
+    .top-list li .exclude {
+        flex: 1 0 100%;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.8rem;
+        margin-top: 0.15rem;
+    }
+    #article-dialog {
+        width: 95%;
+        max-width: none;
+        max-height: 88vh;
+        border-radius: 10px;
+    }
+    #article-dialog .dialog-header {
+        padding: 0.75rem 1rem;
+    }
+    #article-dialog h2 {
+        font-size: 1rem;
+    }
+    #article-dialog .article-list {
+        max-height: calc(88vh - 56px);
+    }
+    #article-dialog .article-list li {
+        padding: 0.9rem 1rem;
+    }
+    #article-dialog .article-title {
+        font-size: 0.95rem;
+    }
+    footer {
+        padding: 1.25rem 0.75rem 1.75rem;
+        font-size: 0.75rem;
+    }
 }
