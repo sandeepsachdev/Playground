@@ -22,6 +22,7 @@
     let sourceCycle = [];
     let cycleIndex = 0;
     let cycleTimer = null;
+    let renderTimer = null;
 
     if (dialog) {
         dialogClose.addEventListener('click', function () { dialog.close(); });
@@ -106,9 +107,19 @@
             container.textContent = 'No trending words yet. Configure feeds and retry.';
             return;
         }
+
+        // Cancel any render that hasn't started yet.
+        if (renderTimer) {
+            clearTimeout(renderTimer);
+            renderTimer = null;
+        }
+
+        // Signal the active render to stop. wordcloud2 sets an internal escapeTime
+        // flag that its next step-callback checks before continuing.
         if (typeof WordCloud.stop === 'function') {
             WordCloud.stop();
         }
+
         const rect = container.getBoundingClientRect();
         const cssW = Math.max(240, rect.width);
         const cssH = Math.max(320, rect.height);
@@ -128,29 +139,36 @@
         const maxWord = Math.min(72, Math.max(28, cssW * 0.18));
         const minWord = Math.max(10, Math.min(14, cssW * 0.035));
 
-        WordCloud(canvas, {
-            list: words,
-            fontFamily: 'Helvetica, Arial, sans-serif',
-            weightFactor: function (count) {
-                return Math.max(minWord, (count / maxCount) * maxWord);
-            },
-            color: function () {
-                return palette[Math.floor(Math.random() * palette.length)];
-            },
-            backgroundColor: 'transparent',
-            rotateRatio: 0.25 + Math.random() * 0.3,
-            rotationSteps: 2,
-            gridSize: 6 + Math.floor(Math.random() * 6),
-            shrinkToFit: true,
-            shuffle: true,
-            // Yield to the browser between word placements so taps stay responsive on mobile.
-            wait: 1,
-            click: function (item) {
-                if (item && item[0]) {
-                    showArticlesFor(item[0]);
+        // Defer the WordCloud() call so the pending wait:1 step-callbacks from the
+        // previous render can fire, see escapeTime in the past, and exit before the
+        // new render resets it. Without this gap, old renders accumulate and flood
+        // the mobile event loop, causing the freeze after the 3rd cloud.
+        renderTimer = setTimeout(function () {
+            renderTimer = null;
+            WordCloud(canvas, {
+                list: words,
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                weightFactor: function (count) {
+                    return Math.max(minWord, (count / maxCount) * maxWord);
+                },
+                color: function () {
+                    return palette[Math.floor(Math.random() * palette.length)];
+                },
+                backgroundColor: 'transparent',
+                rotateRatio: 0.25 + Math.random() * 0.3,
+                rotationSteps: 2,
+                gridSize: 6 + Math.floor(Math.random() * 6),
+                shrinkToFit: true,
+                shuffle: true,
+                // Yield to the browser between word placements so taps stay responsive on mobile.
+                wait: 1,
+                click: function (item) {
+                    if (item && item[0]) {
+                        showArticlesFor(item[0]);
+                    }
                 }
-            }
-        });
+            });
+        }, 10);
     }
 
     function rebuildTopList(words) {
