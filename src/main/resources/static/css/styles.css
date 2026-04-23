@@ -88,8 +88,6 @@ main {
     width: 100%;
     height: 100%;
     display: block;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 .top-list {
@@ -134,8 +132,6 @@ main {
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: rgba(255, 138, 128, 0.25);
 }
 
 .top-list .exclude:hover {
@@ -177,16 +173,14 @@ main {
     position: absolute;
     top: 0.75rem;
     right: 0.75rem;
-    z-index: 5;
-    background: rgba(20, 26, 51, 0.92);
+    z-index: 2;
+    background: rgba(20, 26, 51, 0.85);
     border: 1px solid var(--border);
     color: var(--muted);
     font-size: 0.75rem;
     padding: 0.3rem 0.65rem;
     border-radius: 6px;
     cursor: pointer;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 .toggle-top:hover {
@@ -214,8 +208,6 @@ main.hide-top .top-list {
 
 .term {
     font-weight: 600;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 .count {
@@ -292,8 +284,6 @@ footer a {
     line-height: 1;
     padding: 0.3rem 0.6rem;
     cursor: pointer;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 #article-dialog .close:hover {
@@ -313,8 +303,6 @@ footer a {
     padding: 0.75rem 1.25rem;
     border-bottom: 1px solid var(--border);
     cursor: pointer;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: rgba(110, 231, 255, 0.3);
 }
 
 #article-dialog .article-list li:last-child {
@@ -385,9 +373,8 @@ footer a {
     .toggle-top {
         top: 0.5rem;
         right: 0.5rem;
-        padding: 0.7rem 1rem;
-        font-size: 0.85rem;
-        min-height: 44px;
+        padding: 0.45rem 0.85rem;
+        font-size: 0.8rem;
     }
     .top-list {
         padding: 0.75rem 0.9rem;

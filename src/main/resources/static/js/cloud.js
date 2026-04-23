@@ -104,33 +104,21 @@
             container.textContent = 'No trending words yet. Configure feeds and retry.';
             return;
         }
-        if (typeof WordCloud.stop === 'function') {
-            WordCloud.stop();
-        }
         const rect = container.getBoundingClientRect();
-        const cssW = Math.max(240, rect.width);
-        const cssH = Math.max(320, rect.height);
         const canvas = document.createElement('canvas');
-        // Keep canvas internal resolution in CSS pixels so wordcloud2's hit-test
-        // (which divides offsetX/offsetY by gridSize) stays aligned with taps on mobile.
-        canvas.width = Math.round(cssW);
-        canvas.height = Math.round(cssH);
-        canvas.style.width = cssW + 'px';
-        canvas.style.height = cssH + 'px';
+        canvas.width = Math.max(600, rect.width);
+        canvas.height = Math.max(480, rect.height);
         container.innerHTML = '';
         container.appendChild(canvas);
         canvas.style.cursor = 'pointer';
 
         const maxCount = words[0][1];
-        // Scale font sizes to the container so words never swamp a phone.
-        const maxWord = Math.min(72, Math.max(28, cssW * 0.18));
-        const minWord = Math.max(10, Math.min(14, cssW * 0.035));
 
         WordCloud(canvas, {
             list: words,
             fontFamily: 'Helvetica, Arial, sans-serif',
             weightFactor: function (count) {
-                return Math.max(minWord, (count / maxCount) * maxWord);
+                return Math.max(12, (count / maxCount) * 70);
             },
             color: function () {
                 return palette[Math.floor(Math.random() * palette.length)];
@@ -141,8 +129,6 @@
             gridSize: 6 + Math.floor(Math.random() * 6),
             shrinkToFit: true,
             shuffle: true,
-            // Yield to the browser between word placements so taps stay responsive on mobile.
-            wait: 1,
             click: function (item) {
                 if (item && item[0]) {
                     showArticlesFor(item[0]);
