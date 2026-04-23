@@ -1,13 +1,13 @@
-# syntax=docker/dockerfile:1.6
+# syntax=docker/dockerfile:1
 
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /workspace
 
 COPY pom.xml ./
-RUN --mount=type=cache,id=mvn-repo,target=/root/.m2 mvn -q -B dependency:go-offline
+RUN mvn -q -B dependency:go-offline
 
 COPY src ./src
-RUN --mount=type=cache,id=mvn-repo,target=/root/.m2 mvn -q -B -DskipTests package \
+RUN mvn -q -B -DskipTests package \
     && mv target/*.jar app.jar
 
 FROM eclipse-temurin:17-jre
