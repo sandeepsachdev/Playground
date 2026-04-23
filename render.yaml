@@ -4,7 +4,7 @@ services:
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /api/trending
+    healthCheckPath: /actuator/health
     autoDeploy: true
     envVars:
       - key: JAVA_OPTS
