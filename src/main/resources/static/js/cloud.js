@@ -276,6 +276,17 @@
             });
     }
 
+    function formatLocalRefreshedTime() {
+        const el = document.getElementById('last-refreshed');
+        if (!el) { return; }
+        const raw = el.getAttribute('datetime');
+        if (!raw) { return; }
+        const when = new Date(raw);
+        if (isNaN(when.getTime())) { return; }
+        el.textContent = when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    formatLocalRefreshedTime();
     wireTopList();
     loadSnapshot().catch(function (err) {
         container.textContent = 'Could not load the word cloud: ' + err.message;
