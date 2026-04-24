@@ -5,7 +5,7 @@
     }
 
     const palette = ['#6ee7ff', '#f5b301', '#9ad36b', '#ff8a80', '#c9b1ff', '#ffb870'];
-    const REFRESH_MS = 120000;
+    const REFRESH_MS = 20000;
     const SOURCE_CYCLE_MS = 20000;
     const CLOUD_WORD_LIMIT = 50;
 
@@ -240,6 +240,15 @@
         });
     }
 
+    function updateMetaBar(articleCount) {
+        const el = document.getElementById('meta-bar');
+        if (!el) { return; }
+        const time = new Date().toLocaleTimeString('en-AU', {
+            hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Sydney'
+        });
+        el.textContent = articleCount + ' articles · last refreshed ' + time + ' Sydney time';
+    }
+
     function toPairs(words) {
         return words.map(function (w) { return [w.text, w.count]; });
     }
@@ -302,6 +311,7 @@
             })
             .then(function (snapshot) {
                 allArticles = snapshot.articles || [];
+                updateMetaBar(snapshot.articleCount || 0);
                 const previousSource = currentEntry() ? currentEntry().source : null;
                 sourceCycle = buildSourceCycle(snapshot);
                 cycleIndex = 0;
