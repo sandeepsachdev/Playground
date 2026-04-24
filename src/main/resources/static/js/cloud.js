@@ -6,6 +6,7 @@
 
     const palette = ['#6ee7ff', '#f5b301', '#9ad36b', '#ff8a80', '#c9b1ff', '#ffb870'];
     const REFRESH_MS = 10000;
+    const MAX_WORDS = 100;
 
     const dialog = document.getElementById('article-dialog');
     const dialogTerm = dialog ? dialog.querySelector('.term-chip') : null;
@@ -21,6 +22,8 @@
     let sourceCycle = [];
     let cycleIndex = 0;
     let renderGen = 0;
+    let rendering = false;
+    let cycleTimer = null;
 
     if (dialog) {
         dialogClose.addEventListener('click', function () { dialog.close(); });
@@ -105,6 +108,7 @@
 
         if (!words || words.length === 0) {
             container.textContent = 'No trending words yet. Configure feeds and retry.';
+            rendering = false;
             return;
         }
         const rect = container.getBoundingClientRect();
@@ -115,10 +119,19 @@
         container.appendChild(canvas);
         canvas.style.cursor = 'pointer';
 
-        const maxCount = words[0][1];
+        // Cap list size so a single render stays short on mobile.
+        const list = words.length > MAX_WORDS ? words.slice(0, MAX_WORDS) : words;
+        const maxCount = list[0][1];
+
+        rendering = true;
+        canvas.addEventListener('wordcloudstop', function () {
+            if (renderGen === myGen) {
+                rendering = false;
+            }
+        });
 
         WordCloud(canvas, {
-            list: words,
+            list: list,
             fontFamily: 'Helvetica, Arial, sans-serif',
             weightFactor: function (count) {
                 return Math.max(12, (count / maxCount) * 70);
@@ -132,6 +145,8 @@
             gridSize: 6 + Math.floor(Math.random() * 6),
             shrinkToFit: true,
             shuffle: true,
+            // Yield between word placements so taps stay responsive while drawing.
+            wait: 1,
             abort: function () { return renderGen !== myGen; },
             click: function (item) {
                 if (item && item[0]) {
@@ -230,8 +245,19 @@
         if (sourceCycle.length <= 1) { return; }
         if (document.hidden) { return; }
         if (dialog && dialog.open) { return; }
+        // If the previous render is still drawing, give it this tick to finish.
+        if (rendering) { return; }
         cycleIndex = (cycleIndex + 1) % sourceCycle.length;
         showCurrent();
+    }
+
+    function scheduleNextCycle() {
+        if (cycleTimer) { clearTimeout(cycleTimer); }
+        cycleTimer = setTimeout(function () {
+            cycleTimer = null;
+            advanceCycle();
+            scheduleNextCycle();
+        }, REFRESH_MS);
     }
 
     function buildSourceCycle(snapshot) {
@@ -270,11 +296,20 @@
     loadSnapshot().catch(function (err) {
         container.textContent = 'Could not load the word cloud: ' + err.message;
     });
-    setInterval(advanceCycle, REFRESH_MS);
+    scheduleNextCycle();
 
     document.addEventListener('visibilitychange', function () {
-        if (!document.hidden) {
-            loadSnapshot().catch(function () {});
+        if (document.hidden) {
+            // Drop any in-flight render so wordcloud2's setTimeout chain cannot
+            // resume once the tab wakes and flood the UI with queued work.
+            renderGen++;
+            rendering = false;
+            if (cycleTimer) { clearTimeout(cycleTimer); cycleTimer = null; }
+        } else {
+            scheduleNextCycle();
+            if (!rendering) {
+                showCurrent();
+            }
         }
     });
 })();
