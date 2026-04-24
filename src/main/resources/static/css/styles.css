@@ -246,6 +246,9 @@ footer a {
     width: 90%;
     max-height: 80vh;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 #article-dialog::backdrop {
@@ -260,9 +263,8 @@ footer a {
     gap: 0.75rem;
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
     background: var(--surface);
+    flex: 0 0 auto;
 }
 
 #article-dialog h2 {
@@ -302,8 +304,10 @@ footer a {
     list-style: none;
     margin: 0;
     padding: 0.5rem 0;
-    max-height: calc(80vh - 60px);
+    flex: 1 1 auto;
+    min-height: 0;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 #article-dialog .article-list li {
@@ -420,9 +424,6 @@ footer a {
     }
     #article-dialog h2 {
         font-size: 1rem;
-    }
-    #article-dialog .article-list {
-        max-height: calc(88vh - 56px);
     }
     #article-dialog .article-list li {
         padding: 0.9rem 1rem;
