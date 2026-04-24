@@ -6,7 +6,7 @@
 
     const palette = ['#6ee7ff', '#f5b301', '#9ad36b', '#ff8a80', '#c9b1ff', '#ffb870'];
     const REFRESH_MS = 10000;
-    const MAX_WORDS = 100;
+    const MAX_WORDS = 60;
 
     const dialog = document.getElementById('article-dialog');
     const dialogTerm = dialog ? dialog.querySelector('.term-chip') : null;
@@ -145,8 +145,6 @@
             gridSize: 6 + Math.floor(Math.random() * 6),
             shrinkToFit: true,
             shuffle: true,
-            // Yield between word placements so taps stay responsive while drawing.
-            wait: 1,
             abort: function () { return renderGen !== myGen; },
             click: function (item) {
                 if (item && item[0]) {
