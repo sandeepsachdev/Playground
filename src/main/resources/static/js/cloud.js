@@ -6,7 +6,7 @@
 
     const palette = ['#6ee7ff', '#f5b301', '#9ad36b', '#ff8a80', '#c9b1ff', '#ffb870'];
     const REFRESH_MS = 10000;
-    const MAX_WORDS = 60;
+    const MAX_WORDS = 100;
 
     const dialog = document.getElementById('article-dialog');
     const dialogTerm = dialog ? dialog.querySelector('.term-chip') : null;
@@ -24,12 +24,19 @@
     let renderGen = 0;
     let rendering = false;
     let cycleTimer = null;
+    let renderPending = false;
 
     if (dialog) {
         dialogClose.addEventListener('click', function () { dialog.close(); });
         dialog.addEventListener('click', function (e) {
             if (e.target === dialog) {
                 dialog.close();
+            }
+        });
+        dialog.addEventListener('close', function () {
+            if (renderPending) {
+                renderPending = false;
+                setTimeout(showCurrent, 0);
             }
         });
     }
@@ -227,6 +234,11 @@
     }
 
     function showCurrent() {
+        if (dialog && dialog.open) {
+            renderPending = true;
+            return;
+        }
+        renderPending = false;
         const entry = currentEntry();
         if (!entry) {
             setSourceLabel('');

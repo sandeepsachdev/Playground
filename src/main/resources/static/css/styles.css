@@ -246,15 +246,15 @@ footer a {
     width: 90%;
     max-height: 80vh;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
 }
 
 /* Centre the dialog in the viewport when opened, including on mobile
    browsers that fall back to the non-modal [open] attribute — without
    this the dialog renders inline after the footer. */
 #article-dialog[open] {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     position: fixed;
     inset: 0;
     margin: auto;
