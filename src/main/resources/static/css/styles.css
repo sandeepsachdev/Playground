@@ -251,6 +251,16 @@ footer a {
     overflow: hidden;
 }
 
+/* Centre the dialog in the viewport when opened, including on mobile
+   browsers that fall back to the non-modal [open] attribute — without
+   this the dialog renders inline after the footer. */
+#article-dialog[open] {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    z-index: 1000;
+}
+
 #article-dialog::backdrop {
     background: rgba(3, 6, 16, 0.7);
     backdrop-filter: blur(2px);
