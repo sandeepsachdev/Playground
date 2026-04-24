@@ -257,6 +257,7 @@ footer a {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.75rem;
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border);
     position: sticky;
@@ -268,6 +269,11 @@ footer a {
     margin: 0;
     font-size: 1.1rem;
     color: var(--accent);
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #article-dialog h2 .term-chip {
@@ -284,6 +290,7 @@ footer a {
     line-height: 1;
     padding: 0.3rem 0.6rem;
     cursor: pointer;
+    flex: 0 0 auto;
 }
 
 #article-dialog .close:hover {
