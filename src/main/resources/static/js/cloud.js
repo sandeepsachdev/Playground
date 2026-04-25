@@ -271,18 +271,18 @@
     }
 
     function buildSourceCycle(snapshot) {
-        const perSource = snapshot.sourceWords || [];
-        const cycle = perSource
-            .filter(function (s) { return s.words && s.words.length > 0; })
-            .map(function (s) {
-                return { source: s.source, label: s.source, words: s.words };
-            });
-        if (cycle.length === 0) {
-            const words = snapshot.words || [];
-            if (words.length > 0) {
-                cycle.push({ source: null, label: 'All sources', words: words });
-            }
+        const cycle = [];
+        // Show the combined cloud first, then iterate through each source.
+        const aggregate = snapshot.words || [];
+        if (aggregate.length > 0) {
+            cycle.push({ source: null, label: 'All sources', words: aggregate });
         }
+        const perSource = snapshot.sourceWords || [];
+        perSource
+            .filter(function (s) { return s.words && s.words.length > 0; })
+            .forEach(function (s) {
+                cycle.push({ source: s.source, label: s.source, words: s.words });
+            });
         return cycle;
     }
 
