@@ -660,6 +660,53 @@ trillion
 trillions
 dozen
 dozens
+# Days of the week
+monday
+tuesday
+wednesday
+thursday
+friday
+saturday
+sunday
+mon
+tue
+tues
+wed
+thu
+thur
+thurs
+fri
+sat
+sun
+# Months of the year
+january
+february
+march
+april
+june
+july
+august
+september
+october
+november
+december
+jan
+feb
+mar
+apr
+jun
+jul
+aug
+sep
+sept
+oct
+nov
+dec
+# Web noise
+url
+http
+https
+www
 # Substring fragments — any token containing one of these is dropped.
 ~australia
 ~read
