@@ -270,6 +270,16 @@
         }, REFRESH_MS);
     }
 
+    function shuffleInPlace(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const tmp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = tmp;
+        }
+        return arr;
+    }
+
     function buildSourceCycle(snapshot) {
         const perSource = snapshot.sourceWords || [];
         const cycle = perSource
@@ -277,6 +287,7 @@
             .map(function (s) {
                 return { source: s.source, label: s.source, words: s.words };
             });
+        shuffleInPlace(cycle);
         if (cycle.length === 0) {
             const words = snapshot.words || [];
             if (words.length > 0) {
