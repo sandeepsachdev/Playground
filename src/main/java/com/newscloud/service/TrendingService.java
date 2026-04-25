@@ -93,7 +93,11 @@ public class TrendingService {
         articles.sort(Comparator.comparing(Article::publishedAt,
                 Comparator.nullsLast(Comparator.reverseOrder())));
         if (articles.size() > properties.getMaxEntries()) {
-            articles = articles.subList(0, properties.getMaxEntries());
+            // Copy out so the trimmed-off tail can be garbage collected
+            // immediately. List#subList returns a view that pins the original
+            // list in memory, which matters when many feeds returned thousands
+            // of entries before we cap to maxEntries.
+            articles = new ArrayList<>(articles.subList(0, properties.getMaxEntries()));
         }
 
         List<WordFrequency> words = textAnalyzer.analyze(articles);

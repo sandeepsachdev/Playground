@@ -74,12 +74,17 @@ public class FeedFetcher {
     List<Article> parse(InputStream stream, String sourceName) throws IOException, FeedException {
         SyndFeedInput input = new SyndFeedInput();
         input.setAllowDoctypes(false);
-        SyndFeed feed = input.build(new XmlReader(stream));
-        List<Article> articles = new ArrayList<>(feed.getEntries().size());
-        for (SyndEntry entry : feed.getEntries()) {
-            articles.add(toArticle(entry, sourceName));
+        // Close XmlReader explicitly so its charset-detection buffer and any
+        // BOM-handling state are released promptly; the SyndFeed object retains
+        // only the parsed entries it needs.
+        try (XmlReader reader = new XmlReader(stream)) {
+            SyndFeed feed = input.build(reader);
+            List<Article> articles = new ArrayList<>(feed.getEntries().size());
+            for (SyndEntry entry : feed.getEntries()) {
+                articles.add(toArticle(entry, sourceName));
+            }
+            return articles;
         }
-        return articles;
     }
 
     private Article toArticle(SyndEntry entry, String sourceName) {
