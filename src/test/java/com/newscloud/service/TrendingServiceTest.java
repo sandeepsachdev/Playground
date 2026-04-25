@@ -48,7 +48,9 @@ class TrendingServiceTest {
 
         assertThat(snapshot.articleCount()).isEqualTo(3);
         assertThat(snapshot.sources()).containsExactly("Fake Wire");
-        assertThat(snapshot.words()).extracting(wf -> wf.text()).contains("sydney", "climate");
+        // "climate" is suppressed because it appears inside the "climate talks"
+        // phrase that survives in the cloud — surface the phrase in its place.
+        assertThat(snapshot.words()).extracting(wf -> wf.text()).contains("sydney", "climate talks");
 
         // Cached: second call returns the same instance without refetching.
         TrendingSnapshot again = service.snapshot();

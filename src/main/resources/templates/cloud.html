@@ -17,6 +17,8 @@
             <strong th:text="${#lists.size(snapshot.sources)}">0</strong> sources
             · last refreshed
             <time id="last-refreshed" th:attr="data-ts=${snapshot.generatedAt.toEpochMilli()}">--:--</time>
+            · next refresh
+            <time id="next-refresh" th:attr="data-ts=${nextRefreshAt.toEpochMilli()}">--:--</time>
         </span>
         <span th:if="${snapshot.articleCount == 0}" class="warn">
             No articles loaded yet — check <code>newscloud.feeds</code> configuration.
@@ -65,10 +67,9 @@
 <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
 <script th:src="@{/js/cloud.js}"></script>
 <script>
-  const el = document.getElementById('last-refreshed');
-  if (el && el.dataset.ts) {
+  document.querySelectorAll('time[data-ts]').forEach(function (el) {
     el.textContent = new Date(+el.dataset.ts).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-  }
+  });
 </script>
 </body>
 </html>

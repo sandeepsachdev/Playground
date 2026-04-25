@@ -9,9 +9,11 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -60,8 +62,35 @@ public class TextAnalyzer {
 
         merged.sort(Comparator.comparingInt(WordFrequency::count).reversed()
                 .thenComparing(WordFrequency::text));
-        int limit = Math.min(properties.getTopN(), merged.size());
-        return new ArrayList<>(merged.subList(0, limit));
+        return takeTopWithPhraseSuppression(merged, properties.getTopN());
+    }
+
+    /**
+     * Walks the ranked list and selects up to {@code topN} entries while
+     * suppressing single-word entries whose word also appears in any phrase
+     * already accepted into the result. This holds even if the single word
+     * outranks the phrase — when the phrase later joins the result, the
+     * earlier single is removed and we keep going so the result still hits
+     * topN where possible.
+     */
+    private static List<WordFrequency> takeTopWithPhraseSuppression(List<WordFrequency> ranked, int topN) {
+        List<WordFrequency> result = new ArrayList<>(Math.min(topN, ranked.size()));
+        Set<String> suppressedSingles = new HashSet<>();
+        for (WordFrequency wf : ranked) {
+            if (result.size() >= topN) {
+                break;
+            }
+            if (wf.phrase()) {
+                result.add(wf);
+                for (String w : wf.text().split(" ")) {
+                    suppressedSingles.add(w);
+                }
+                result.removeIf(prev -> !prev.phrase() && suppressedSingles.contains(prev.text()));
+            } else if (!suppressedSingles.contains(wf.text())) {
+                result.add(wf);
+            }
+        }
+        return result;
     }
 
     List<String> tokenize(String raw) {

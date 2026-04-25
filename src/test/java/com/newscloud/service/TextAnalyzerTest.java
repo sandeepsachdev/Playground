@@ -36,7 +36,9 @@ class TextAnalyzerTest {
 
         assertThat(result).extracting(WordFrequency::text).doesNotContain("the", "in", "for", "a");
         assertThat(topWord(result, "sydney")).isEqualTo(4);
-        assertThat(topWord(result, "climate")).isEqualTo(4);
+        // "climate" itself is suppressed because it shows up in the surviving
+        // "climate summit" phrase below; surface the phrase instead.
+        assertThat(result).anyMatch(w -> w.phrase() && w.text().equals("climate summit"));
         assertThat(topWord(result, "election")).isEqualTo(2);
     }
 

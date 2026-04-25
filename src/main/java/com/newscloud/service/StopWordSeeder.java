@@ -1,5 +1,7 @@
 package com.newscloud.service;
 
+import com.newscloud.config.FeedProperties;
+import com.newscloud.config.FeedProperties.FeedSource;
 import com.newscloud.model.StopWord;
 import com.newscloud.repository.StopWordRepository;
 import org.slf4j.Logger;
@@ -18,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * On every startup, tops up the {@code stop_words} table with any entries
@@ -29,9 +32,12 @@ import java.util.Set;
 public class StopWordSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(StopWordSeeder.class);
+    private static final Pattern NAME_TOKEN_SPLIT = Pattern.compile("[^\\p{L}0-9]+");
 
     @Bean
-    ApplicationRunner seedStopWords(StopWordRepository repository, StopWordFilter filter) {
+    ApplicationRunner seedStopWords(StopWordRepository repository,
+                                    StopWordFilter filter,
+                                    FeedProperties feedProperties) {
         return args -> {
             List<StopWord> rows = readSeedResource("stopwords.txt");
             log.info("stopwords.txt contains {} entries; checking database for missing rows", rows.size());
@@ -47,7 +53,33 @@ public class StopWordSeeder {
                 log.info("Seeded {} new stop words from stopwords.txt", missing.size());
             }
             filter.reload();
+            filter.setExtraWords(feedNameTokens(feedProperties));
         };
+    }
+
+    /**
+     * Tokenises every configured feed name into individual lowercase words so
+     * they can be excluded from the trending cloud (e.g. "ABC News (Australia)"
+     * yields "abc", "news", "australia"). Tokens shorter than 3 characters are
+     * dropped to avoid swallowing too much.
+     */
+    private static Set<String> feedNameTokens(FeedProperties properties) {
+        Set<String> out = new HashSet<>();
+        if (properties == null || properties.getFeeds() == null) {
+            return out;
+        }
+        for (FeedSource feed : properties.getFeeds()) {
+            String name = feed.getName();
+            if (name == null || name.isBlank()) {
+                continue;
+            }
+            for (String part : NAME_TOKEN_SPLIT.split(name.toLowerCase(Locale.ROOT))) {
+                if (part.length() >= 3) {
+                    out.add(part);
+                }
+            }
+        }
+        return out;
     }
 
     private static List<StopWord> readSeedResource(String resource) {

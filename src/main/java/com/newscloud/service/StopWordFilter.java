@@ -35,6 +35,7 @@ public class StopWordFilter {
 
     private volatile Set<String> stopWords = Set.of();
     private volatile List<String> stopFragments = List.of();
+    private volatile Set<String> extraWords = Set.of();
 
     @Autowired
     public StopWordFilter(StopWordRepository repository) {
@@ -74,7 +75,7 @@ public class StopWordFilter {
             return false;
         }
         String lower = word.toLowerCase(Locale.ROOT);
-        if (stopWords.contains(lower)) {
+        if (stopWords.contains(lower) || extraWords.contains(lower)) {
             return true;
         }
         for (String fragment : stopFragments) {
@@ -86,7 +87,7 @@ public class StopWordFilter {
     }
 
     public int size() {
-        return stopWords.size() + stopFragments.size();
+        return stopWords.size() + stopFragments.size() + extraWords.size();
     }
 
     public Set<String> exactWords() {
@@ -95,6 +96,28 @@ public class StopWordFilter {
 
     public List<String> fragments() {
         return stopFragments;
+    }
+
+    /**
+     * In-memory only stop words (e.g. tokens derived from configured feed
+     * names). These are not persisted to the database and are reapplied via
+     * this setter on every startup or feed-config change.
+     */
+    public synchronized void setExtraWords(Set<String> words) {
+        if (words == null || words.isEmpty()) {
+            this.extraWords = Set.of();
+        } else {
+            Set<String> lower = new HashSet<>(words.size());
+            for (String w : words) {
+                if (w == null) continue;
+                String trimmed = w.trim().toLowerCase(Locale.ROOT);
+                if (!trimmed.isEmpty()) {
+                    lower.add(trimmed);
+                }
+            }
+            this.extraWords = Collections.unmodifiableSet(lower);
+        }
+        log.info("Loaded {} extra (in-memory) stop words", this.extraWords.size());
     }
 
     /**
