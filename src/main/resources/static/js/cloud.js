@@ -5,8 +5,8 @@
     }
 
     const palette = ['#6ee7ff', '#f5b301', '#9ad36b', '#ff8a80', '#c9b1ff', '#ffb870'];
-    const REFRESH_MS = 10000;
-    const MAX_WORDS = 60;
+    const REFRESH_MS = 20000;
+    const MAX_WORDS = 50;
 
     const dialog = document.getElementById('article-dialog');
     const dialogTerm = dialog ? dialog.querySelector('.term-chip') : null;
